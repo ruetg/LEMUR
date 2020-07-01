@@ -1,6 +1,6 @@
 
 
-function [Z,FD,OUT] = ulem(UL)
+function [Z,FD,OUT] = lemur_wrapper(UL)
 
 clear mex;
 %Relatively constant constants

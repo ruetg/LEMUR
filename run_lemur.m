@@ -5,11 +5,7 @@ load('calbuco');
 Z1=double(calbuco_dem(1:end,1:end));
 %Z1=Z1+rand(size(Z1))*.01;% DEM has large flat areas?
 
-
 UL.k=zeros(size(Z1))+5e-7;%stream power k 
-
-
-
 UL.Zi=Z1;%initial grid - set this to whatever you wish or load in a diferent grid 
 [mm,nn] = size(Z1);%Size of grid
 UL.Zi(UL.Zi==0)=-1;
@@ -50,6 +46,6 @@ UL.undercapacity=zeros(size(UL.Zi))+0;% Where to apply undercapacity model (1=un
 UL.l=.5;%Length scale in undercapacity model (m)
 UL.ks =0;%Sediment transport coefficient in undercapacity model;
 UL.sinkfill = true;%Do not pair false with marine deposition - massive slowdown
-UL.massconservativesinkfill=true; %mass conservative sinkfill? - this is not recommended to be paired with marine deposition
-UL.maxareasinkfill=100000000000;
+UL.massconservativesinkfill = false; %mass conservative sinkfill? - this is not recommended to be paired with marine deposition
+UL.maxareasinkfill = 0;
 [Z2,FD,SS] = lemur_wrapper(UL); 

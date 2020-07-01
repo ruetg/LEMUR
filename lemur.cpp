@@ -305,7 +305,7 @@ void ulemgrid::set(std::string nm,double val)
     {
         dx=val;
     }
-    else if (nm.compare("landsed")==0)
+    else if (nm.compare("landsed") == 0)
     {
         uselandsed=(bool)val;
     }

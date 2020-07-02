@@ -228,22 +228,22 @@ for t = 0:dt:tt-dt
         Z = Z+isoall;
         
     end
-    if sinkfilling
+    if sinkfilling&&landsed
         sinkareas=lemur_mex('get','sinkareas');
     end
     Z = Z+U*dt;
-    if sinkfilling
+    if sinkfilling&&landsed
         depo(sinkareas>maxareasinkfill)=sinkfill(sinkareas>maxareasinkfill);
         depo(Z<0)=0;
     end
     %Display topography every drawdt timesteps
     if display && mod(t/dt,drawdt)==0
         figure(2);
-        h=imagesc(Z);shading interp;demcmap(Z,2500);
+        h=imagesc(Z);shading interp;demcmap(Z,64);
         %[LON,LAT]=meshgrid(1:n,1:m);hold off;
         %dem((1:n).*.1,(1:m).*.075,Z,'latlon','zlim',[-3e4,3e4]);
         drawnow;
-        hold on;
+     %   hold on;
         
         %%
         
@@ -263,8 +263,8 @@ for t = 0:dt:tt-dt
     
     nd=0;
     tsinkfill = tsinkfill+sinkfill+nd;
-            tdepo = tdepo+depo;
-
+    tdepo = tdepo+depo;
+    
     %Output
     %Write output every wdt years
     FD.I=lemur_mex('get','stack');

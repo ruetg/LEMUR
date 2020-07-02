@@ -1,8 +1,8 @@
 clear mex;
 clear all;
-load('calbuco');
+load('lemlat');
 
-Z1=double(calbuco_dem(1:end,1:end));
+Z1=Z1;%double(calbuco_dem(1:end,1:end));
 %Z1=Z1+rand(size(Z1))*.01;% DEM has large flat areas?
 
 UL.k=zeros(size(Z1))+5e-7;%stream power k 
@@ -43,9 +43,9 @@ UL.deposit=false; %Use marine deposition?
 UL.drawdt=10;% Plot topography every x timesteps
 
 UL.undercapacity=zeros(size(UL.Zi))+0;% Where to apply undercapacity model (1=undercapacity, 0=stream power).
-UL.l=.5;%Length scale in undercapacity model (m)
-UL.ks =0;%Sediment transport coefficient in undercapacity model;
-UL.sinkfill = true;%Do not pair false with marine deposition - massive slowdown
+UL.l=.5; %Length scale in undercapacity model (m)
+UL.ks =0; %Sediment transport coefficient in undercapacity model;
+UL.sinkfill = true; %Do not pair false with marine deposition - massive slowdown
 UL.massconservativesinkfill = false; %mass conservative sinkfill? - this is not recommended to be paired with marine deposition
-UL.maxareasinkfill = 0;
+UL.maxareasinkfill = 10000000;
 [Z2,FD,SS] = lemur_wrapper(UL); 

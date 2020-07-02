@@ -1768,9 +1768,11 @@ void ulemgrid::lakefill()
     }
     else
     {
-        
+        //uselandsed=true;
+        landsurf = Z;
         lakefill2();
         landsurf=Z;
+
     }
 }
 void ulemgrid::deposit()

@@ -153,13 +153,13 @@ private:
     
     void rangesearch(int,int);
     int rcount=1;
-    double sangle=.01;//shelf angle
+    double sangle=.000001;//shelf angle
     int rsi = 1;
     int minrs=1;
     int maxrs=1;
     int maxr=0;
     
-    double critangle=1;//cone angle
+    double critangle=10;//cone angle
     std::vector<int> catchments;
     int itriangle(int,int,int,int);
     std::vector<std::vector<int>> anglesx;
@@ -550,7 +550,7 @@ void ulemgrid::findsteepest()
             
         };
     };
-    std::cout<<nsink<<std::endl;;
+    std::cout<<nsink<<std::endl;
     //mexPrintf("%d\n",nsink);
 };
 
@@ -811,6 +811,7 @@ void ulemgrid::erode()
 void ulemgrid::reset()
 
 {
+
     if (usefd==false)
     {
         stackij.clear();
@@ -820,6 +821,7 @@ void ulemgrid::reset()
     
     std::fill(ndons.begin(),ndons.end(),0);
     std::fill(BCX.begin(),BCX.end(),0);
+
     std::fill(ero.begin(),ero.end(),0.0);
 #pragma omp parallel for
     for (int i=1;i<BC.size();i++)
@@ -827,7 +829,7 @@ void ulemgrid::reset()
         
         BCX[BC[i]]=1;
     }
-    
+
     for (int i=1;i<=BC.size();i++)
     {
         // std::cout<<i<<" ";
@@ -1045,7 +1047,6 @@ void ulemgrid::fillls2()
         int no=1;
         std::vector<double> cerol;
         cerol.resize(nn+1);
-        std::cout<<"here"<<std::endl;
 #pragma omp parallel for schedule(dynamic) firstprivate(dti,ssum,sedsum,nj,dt,dx,dy,nn,ks,L,T)
         
         for (int j=1;j<nnn;j++)
@@ -1171,15 +1172,18 @@ void ulemgrid::basinfill(int ij,int ij1)
     }
 }
 void ulemgrid::erosion_fluvial()
-{
+{    
+
     reset();
-    
+        
+
     if (usefd==false)
     {
         findsteepest();
-        
+            
+
         getdonors();
-        
+            
         createstack2();
         
     }
@@ -1233,15 +1237,18 @@ void ulemgrid::erosion_fluvial()
 void ulemgrid::erosion_fluvial2()
 {
     reset();
-    
+    std::cout<<"here1";
     if (usefd==false)
     {
         findsteepest();
-        
+            std::cout<<'here2';
+
         getdonors();
-        
+            std::cout<<'here3';
+
         createstack2();
-        
+            std::cout<<'here4';
+
     }
     getacc();
     
@@ -1250,7 +1257,8 @@ void ulemgrid::erosion_fluvial2()
     {
         fillls2();
     }
-    
+        std::cout<<'here5';
+
 }
 
 std::vector<double> ulemgrid::get(std::string nm)
@@ -1264,7 +1272,13 @@ std::vector<double> ulemgrid::get(std::string nm)
             val[i-1]=BCX[i];
         }
     }
-    
+    else if (nm.compare("acc")==0)
+    {
+        for (int i=1;i<nn;i++)
+        {
+            val[i-1]=accgrid[i];
+        }
+    }
     else if (nm.compare("z")==0)
     {
         for (int i=1;i<nn+1;i++)
@@ -1768,11 +1782,11 @@ void ulemgrid::lakefill()
     }
     else
     {
-        //uselandsed=true;
+        uselandsed=false;
         landsurf = Z;
         lakefill2();
-        landsurf=Z;
-
+        std::cout<<"ere";
+        landsurf = Z;
     }
 }
 void ulemgrid::deposit()
@@ -1802,7 +1816,7 @@ void ulemgrid::deposit()
     std::vector<double> seds;
     
     
-    seds.resize(nn);
+    seds.resize(nn+1);
     catchments.resize(nn+1);
     int tic;
     int ri=1;
@@ -1828,14 +1842,15 @@ void ulemgrid::deposit()
     //std::cout<<sumsedij<<std::endl;
     int rs;
     double lastsed=1e10;
+    std::cout<<"nx= "<< nx << std::endl;
+    std::cout<<"ny= "<< ny << std::endl;
     for (int i=1;i<=ny;i++)
     {
-        
+
         for (int j=1;j<=nx;j++)
         {
-            ij = i+(j-1)*nx;
-            
-            if (dsi[ij]>0&&(((i>1&&i<ny&&j>1&&j<nx))&&Z[ij]<100))
+            ij = i+(j-1)*ny;
+            if (dsi.at(ij)>0&&(((i>1&&i<ny&&j>1&&j<nx))&&Z[ij]<0))
             {
                 rs=minrs;
                 test[ij]=1;
@@ -1892,8 +1907,8 @@ void ulemgrid::deposit()
                         {
                             if (!nidx[l])
                             {
-                                sedx=sed[ij]/sumseds*seds[l];
-                                Z[zni[l]]=Z[zni[l]]+sedx;
+                                sedx=sed.at(ij)/sumseds*seds.at(l);
+                                Z.at(zni.at(l))=Z[zni[l]]+sedx;
                                 sumsedij+=sed[ij]/sumseds*sedx;;
                                 
                             }

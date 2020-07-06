@@ -117,7 +117,7 @@ for t = 0:dt:tt-dt
     %If boundary condition is dynamic, set it to all points below zero
     %elevation
     if dBC
-        BC = find(Z<=0);
+        BC = find(Z < 0);
         % BC = [BC];
     else
         U(BC) = 0;
@@ -239,6 +239,7 @@ for t = 0:dt:tt-dt
     %Display topography every drawdt timesteps
     if display && mod(t/dt,drawdt)==0
         figure(2);
+       % Z(BC)=9999;
         h=imagesc(Z);shading interp;demcmap(Z,64);
         %[LON,LAT]=meshgrid(1:n,1:m);hold off;
         %dem((1:n).*.1,(1:m).*.075,Z,'latlon','zlim',[-3e4,3e4]);

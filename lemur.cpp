@@ -966,19 +966,19 @@ void ulemgrid::fillls()
                     for (int i=1;i<=olength[j]-1;i++)
                     {
                         
-                        if (undercapacity[stackij[j][i]]==1&&Zn[stackij[j][i]]>=0)
+                        if (undercapacity[stackij[j][i]]>=1&&Zn[stackij[j][i]]>=0)
                         {
                             
                             A=std::pow(accgrid[stackij[j][i]],m);
                             
-                            if (m==1)
+                            if (m==1)//If uncercapacity
                             {
                                 Lt=L;
                                 A2=1.0;
                                 di=dists[stackij[j][i]];
                                 d2=1.0;
                             }
-                            else
+                            else//If yuan et al
                             {
                                 Lt=1.0;
                                 A2=accgrid[stackij[j][i]];
@@ -986,11 +986,12 @@ void ulemgrid::fillls()
                                 d2=std::pow(dists[stackij[j][i]],n_);
                             }
                             
-                            
+           
                             tl=((cero[stackij[j][i]]-ero[stackij[j][i]])/L/A2*di+Zn[stackij[j][i]]+
                                     std::max(0.0,Zn[slpis[stackij[j][i]]])*
                                     f/Lt/d2*A)/(f/Lt/d2*A+1.0);
                             
+          
                             
                             erol=ero[stackij[j][i]];
                             ero[stackij[j][i]]=(Zn[stackij[j][i]]-tl);
@@ -1008,7 +1009,7 @@ void ulemgrid::fillls()
                 
                 for (int i=0;i<=olength[j]-1;i++)
                 {
-                    if (undercapacity[stackij[j][i]]==1)
+                    if (undercapacity[stackij[j][i]]>=1)
                     {Z[stackij[j][i]]=Zn[stackij[j][i]];
                      
                     }
@@ -1103,7 +1104,7 @@ void ulemgrid::fillls2()
                             
                         {                        no++;
                         }
-                        if (undercapacity[stackij[j][i]]==1)
+                        if (undercapacity[stackij[j][i]]>=1)
                         {
                             
                             A=std::pow(accgrid[stackij[j][i]],1.0);
@@ -1111,6 +1112,7 @@ void ulemgrid::fillls2()
                             tl=1/L*dists[stackij[j][i]]*(cero[stackij[j][i]]-
                                     ks*dt*accgrid[stackij[j][i]]*
                                     (Z[stackij[j][i]]-std::max(0.0,Z[slpis[stackij[j][i]]]))/dists[stackij[j][i]]);
+                            
                             erol=ero[stackij[j][i]];
                             
                             Zn[stackij[j][i]]+=tl;
@@ -1127,7 +1129,7 @@ void ulemgrid::fillls2()
                 }
                 for (int i=1;i<=olength[j]-1;i++)
                 {
-                    if (undercapacity[stackij[j][i]]==1)
+                    if (undercapacity[stackij[j][i]]>=1)
                     {Z[stackij[j][i]]=Zn[stackij[j][i]];
                      
                     }
@@ -1190,6 +1192,7 @@ void ulemgrid::erosion_fluvial()
     getacc();
     
     erode();
+    std::cout<<ks<<std::endl;
     if (ks>1e-100)
     {
         fillls();
@@ -1237,17 +1240,13 @@ void ulemgrid::erosion_fluvial()
 void ulemgrid::erosion_fluvial2()
 {
     reset();
-    std::cout<<"here1";
     if (usefd==false)
     {
         findsteepest();
-            std::cout<<'here2';
 
         getdonors();
-            std::cout<<'here3';
 
         createstack2();
-            std::cout<<'here4';
 
     }
     getacc();

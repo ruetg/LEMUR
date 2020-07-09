@@ -240,7 +240,8 @@ for t = 0:dt:tt-dt
     if display && mod(t/dt,drawdt)==0
         figure(2);
        % Z(BC)=9999;
-        h=imagesc(Z);shading interp;demcmap(Z,64);
+        h=imagesc(ero);shading interp;
+        demcmap([-1 1])
         %[LON,LAT]=meshgrid(1:n,1:m);hold off;
         %dem((1:n).*.1,(1:m).*.075,Z,'latlon','zlim',[-3e4,3e4]);
         drawnow;

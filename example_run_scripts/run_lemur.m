@@ -1,5 +1,12 @@
 clear mex;
 clear all;
+
+path = pwd;
+cd ../matlab_setup
+addpaths
+cd(path)
+
+
 %load('lemlat');
 %load('ll');
 Z1=zeros(500,500);
@@ -45,4 +52,4 @@ UL.ks =1; %Sediment transport coefficient in undercapacity model;
 UL.sinkfill = true; %Do not pair false with marine deposition - massive slowdown
 UL.massconservativesinkfill = false; %mass conservative sinkfill? - this is not recommended to be paired with marine deposition
 UL.maxareasinkfill = 1000000;
-[Z2,FD,SS] = lemur_wrapper(UL); 
+[Z2,FD,SS] = lemur(UL); 

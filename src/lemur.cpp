@@ -1,198 +1,16 @@
-#ifndef ULEMGRID
-
-#ifndef std
-#include <iostream>
-#endif
-#ifndef vector_h
-#include <vector>
-#endif
 #include <string>
 #include <fstream>
 #include<cmath>
 #include <stdio.h>
 #include<sstream>
-
+#include "lemur.h"
 #include<stdexcept>
 #include <algorithm>
 //#include <omp.h>
-void mprint(double);
-void mprint(int);
-
-#include <fstream>
 
 
-#define ULEMGRID
 
-class ulemgrid
-{
-public:
-    ulemgrid(int,int);//constructor takes size of grid mxn as input params
-    void set(std::string,int);
-    void set(std::string,double);
-    void set(std::string,std::vector<double>);
-    void set(std::string,double*,int);
-        std::vector<double> sinkareas;
-
-    std::vector<double> get(std::string);
-    
-    void erosion_fluvial();//Fastscape method, erosion
-    void lakefill();//Fill lakes
-    void diffuse();//"Hillslope" diffusion
-    void deposit(); //Deposition
-    void erosion_fluvial2();//Temporary function for Testing explicit vs implicit methods
-    
-    
-private:
-    std::vector<double> U;
-    std::vector<double> test;
-    std::vector<double> kval;
-    bool usefd=false;
-    std::vector<double> ero;
-    
-    double L;
-    double T=0;
-    double m;
-    int nstep;
-    int nn;
-    double dt;
-    std::vector<int> stack;
-    std::vector<int> undercapacity;
-    double dy;
-    std::vector<double> adds;
-    std::vector<double> Z;
-    int nx=1;
-    int ny=1;
-    double ks=.0001;
-    double dx;
-    int firstcall;
-    std::vector<int> slpis ;
-    double kd;
-    double tt;
-    double n_;
-    double maxareasinkfill;
-    std::vector<double> BC;
-    std::vector<std::vector<int>> stackij;
-    std::vector<int> idx;
-    
-    std::vector<int> ndons;
-    int numiter;
-    
-    int nnn;
-    double sk;
-    
-    
-    std::vector<int> olength;
-    int recursivestack(int,int,int);
-    
-    
-    std::vector<int> BCX;
-    
-    std::vector<double> kw;
-    int tstep;
-    
-    
-    void erode();
-    void basinfill(int,int);
-    void fillls();
-    void fillls2();
-    
-    void filll();
-    void getdonors();
-    
-    void findsteepest();
-    void createstack();
-    void createstack2();
-    std::vector<int> olist;
-    
-    void reset();
-    std::vector<std::vector<int> > donors;
-    
-    void getacc();
-    std::vector<double> accgrid;
-    
-    std::vector<double> dists;
-    
-    
-    void landsed();
-    
-    
-    class cmpr
-    {
-        std::vector<double> *dem;
-    public:
-        
-        bool operator() (const int &i,const int &j) const
-        {
-            if ((*dem)[i]>(*dem)[j])
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-    };
-    void lakefill2();
-    std::vector<int> sinkfill;
-    std::vector<double> sed;
-    bool uselandsed=false;
-    std::vector<bool> usedr;
-    void recursivesed(int);
-    double sedextra;
-    double area;
-    std::vector<int>sedlist;
-    std::vector<int> next;
-    
-    int nrecur;
-    int nseds;
-    std::vector<double> landsurf;
-    
-    std::vector<double> d,dsi;
-    int mres=1000;
-    
-    void rangesearch(int,int);
-    int rcount=1;
-    double sangle=.000001;//shelf angle
-    int rsi = 1;
-    int minrs=1;
-    int maxrs=1;
-    int maxr=0;
-    
-    double critangle=10;//cone angle
-    std::vector<int> catchments;
-    int itriangle(int,int,int,int);
-    std::vector<std::vector<int>> anglesx;
-    std::vector<std::vector<int>> anglesy;
-    std::vector<std::vector<int>> anglesx2;
-    std::vector<std::vector<int>> anglesy2;
-    std::vector<std::vector<double>> Dist;
-    std::vector<std::vector<int>> I;
-    std::vector<int> ic;
-    std::vector<int> ic2;
-    
-    std::vector<std::vector<double>> Dist2;
-    
-    std::vector<double> anglespolar1;
-    std::vector<double> anglespolar2;
-    std::vector<int> ys;
-    std::vector<int> xs;
-    std::vector<int> ys2;
-    std::vector<int> xs2;
-    
-    
-    std::vector<int> anglesi2;
-    std::vector<int> zni;
-    std::vector<double>anglesz;
-    std::vector<double>angleszi;
-    std::vector<double> minz,anglesz2;
-    std::vector<bool> nidx;
-    int landorsea=0;//0 for land diffuse, 1 for sea
-    
-};
-
-
-ulemgrid::ulemgrid(int i, int j)
+lemur::lemur(int i, int j)
 {
     ny=i;
     nx=j;
@@ -265,11 +83,11 @@ ulemgrid::ulemgrid(int i, int j)
     maxareasinkfill=0;
 }
 
-void ulemgrid::set(std::string nm,int val)
+void lemur::set(std::string nm,int val)
 {
     
 }
-void ulemgrid::set(std::string nm,double val)
+void lemur::set(std::string nm,double val)
 {
     if (nm.compare("firstcall")==0)
     {
@@ -327,7 +145,7 @@ void ulemgrid::set(std::string nm,double val)
         std::cout<<nm<<": parameter not found";
     }
 }
-void ulemgrid::set(std::string nm,double* val,int len)
+void lemur::set(std::string nm,double* val,int len)
 {
     if (nm.compare("bc")==0)
     {
@@ -385,12 +203,12 @@ void ulemgrid::set(std::string nm,double* val,int len)
     }
     else
     {
-        throw std::invalid_argument( " Error in ulemgrid, input grid is wrong size" );
+        throw std::invalid_argument( " Error in lemur, input grid is wrong size" );
     }
     
     
 }
-void ulemgrid::set(std::string nm,std::vector<double> val)
+void lemur::set(std::string nm,std::vector<double> val)
 {
     
     int len=val.size();
@@ -443,7 +261,7 @@ void ulemgrid::set(std::string nm,std::vector<double> val)
 
 
 
-void ulemgrid::findsteepest()
+void lemur::findsteepest()
 {
     int ij;
     double slpxp;
@@ -554,7 +372,7 @@ void ulemgrid::findsteepest()
     //mexPrintf("%d\n",nsink);
 };
 
-void ulemgrid::getdonors()
+void lemur::getdonors()
 {
 #pragma omp parallel for
     for (int ij=1;ij<=nn;ij++)
@@ -567,7 +385,7 @@ void ulemgrid::getdonors()
     }
 };
 
-void ulemgrid::createstack()
+void lemur::createstack()
 {
     olist.resize(1);
     
@@ -623,7 +441,7 @@ void ulemgrid::createstack()
     }
     // mexPrintf("%d\n",stack[0]);
 };
-int ulemgrid::recursivestack(int r,int p,int i)
+int lemur::recursivestack(int r,int p,int i)
 {
     
     if (p<=nn&&numiter<1e5)
@@ -646,7 +464,7 @@ int ulemgrid::recursivestack(int r,int p,int i)
     }
     
 };
-void ulemgrid::createstack2()
+void lemur::createstack2()
 {
     olist.resize(1);
     
@@ -708,7 +526,7 @@ void ulemgrid::createstack2()
     // mexPrintf("%d\n",stack[0]);
 };
 
-void ulemgrid::getacc()
+void lemur::getacc()
 {
     
 #pragma omp simd
@@ -730,7 +548,7 @@ void ulemgrid::getacc()
     
 }
 
-void ulemgrid::erode()
+void lemur::erode()
 {
     double f;
     double fs=0;
@@ -808,7 +626,7 @@ void ulemgrid::erode()
     }
 }
 
-void ulemgrid::reset()
+void lemur::reset()
 
 {
 
@@ -842,7 +660,7 @@ void ulemgrid::reset()
 }
 
 
-void ulemgrid::filll()
+void lemur::filll()
 {
     if (stackij.size()>0)
     {
@@ -862,7 +680,7 @@ void ulemgrid::filll()
     }
 }
 
-void ulemgrid::fillls()
+void lemur::fillls()
 {
     std::vector<double> cero=ero;
     std::vector<double> Zn=Z;
@@ -1031,7 +849,7 @@ void ulemgrid::fillls()
     
 }
 
-void ulemgrid::fillls2()
+void lemur::fillls2()
 {
     std::vector<double> cero=ero;
     std::vector<double> Zn=Z;
@@ -1149,7 +967,7 @@ void ulemgrid::fillls2()
     
 }
 
-void ulemgrid::basinfill(int ij,int ij1)
+void lemur::basinfill(int ij,int ij1)
 {
     double min=Z.at(ij);
     for (int i=0;i<8;i++)
@@ -1173,7 +991,7 @@ void ulemgrid::basinfill(int ij,int ij1)
         }
     }
 }
-void ulemgrid::erosion_fluvial()
+void lemur::erosion_fluvial()
 {    
 
     reset();
@@ -1237,7 +1055,7 @@ void ulemgrid::erosion_fluvial()
     
 }
 
-void ulemgrid::erosion_fluvial2()
+void lemur::erosion_fluvial2()
 {
     reset();
     if (usefd==false)
@@ -1260,7 +1078,7 @@ void ulemgrid::erosion_fluvial2()
 
 }
 
-std::vector<double> ulemgrid::get(std::string nm)
+std::vector<double> lemur::get(std::string nm)
 {
     std::vector<double> val;
     val.resize(nn);
@@ -1460,7 +1278,7 @@ void priorityq::push(int i)
     
 }
 
-void ulemgrid::lakefill2()
+void lemur::lakefill2()
 {
     double pittop;
     int c=0;
@@ -1605,7 +1423,7 @@ void ulemgrid::lakefill2()
 }
 
 
-void ulemgrid::landsed()
+void lemur::landsed()
 {
     if (maxareasinkfill>0)
     {
@@ -1725,7 +1543,7 @@ void ulemgrid::landsed()
     }
     Z=landsurf;
 }
-void ulemgrid::recursivesed(int ij)
+void lemur::recursivesed(int ij)
 {
     usedr[ij]=true;
     int c=0;
@@ -1768,7 +1586,7 @@ void ulemgrid::recursivesed(int ij)
         
     }
 }
-void ulemgrid::lakefill()
+void lemur::lakefill()
 {
     if (uselandsed==1)
     {
@@ -1788,7 +1606,7 @@ void ulemgrid::lakefill()
         landsurf = Z;
     }
 }
-void ulemgrid::deposit()
+void lemur::deposit()
 {
     double sumsedij=0;
     std::vector<double> d,dsi;
@@ -1962,7 +1780,7 @@ void ulemgrid::deposit()
 
 
 
-int ulemgrid::itriangle(int r,int ri, int xi, int yi)
+int lemur::itriangle(int r,int ri, int xi, int yi)
 {
     double I1;
     
@@ -2204,7 +2022,7 @@ int ulemgrid::itriangle(int r,int ri, int xi, int yi)
     return tic;
     
 }
-void ulemgrid::rangesearch(int r,int ri)
+void lemur::rangesearch(int r,int ri)
 {
     double I1,I2;
     
@@ -2241,7 +2059,7 @@ void ulemgrid::rangesearch(int r,int ri)
     
 }
 
-void ulemgrid::diffuse()
+void lemur::diffuse()
 {
     std::vector<double> diffuarray;
     diffuarray.resize(nn+1);
@@ -2315,6 +2133,5 @@ void ulemgrid::diffuse()
 
 
 
-#endif
 
 

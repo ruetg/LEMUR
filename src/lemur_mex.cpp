@@ -37,7 +37,7 @@ void mexFunction(
         
     }
     
-    static ulemgrid grid(ny,nx);
+    static lemur grid(ny,nx);
     
     if (first==false&&nrhs>=2)
     {

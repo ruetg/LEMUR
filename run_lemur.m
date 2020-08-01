@@ -1,22 +1,22 @@
 clear mex;
 clear all;
-load('lemlat');
+%load('lemlat');
 %load('ll');
-Z1=Z1;%double(calbuco_dem(1:end,1:end));
+Z1=zeros(500,500);
+Z1=Z1+rand(size(Z1))*1;% DEM has large flat areas?
 
-Z1=Z1+rand(size(Z1))*.01;% DEM has large flat areas?
 %Z1(Z1<0)=-1000;
 UL.k=zeros(size(Z1))+5e-7;%stream power k 
 UL.Zi=Z1;%initial grid - set this to whatever you wish or load in a diferent grid 
 [mm,nn] = size(Z1);%Size of grid
 UL.dx = 3000;%Grid distance (m)
 UL.dy = 3000;
-UL.t=20e4;%total time (yr)
-UL.dt=1e4;%time step (yr)
+UL.t=10e6;%total time (yr)
+UL.dt=1e5;%time step (yr)
 UL.display=1;%display topo during run?
 UL.Udt = 1e3;%Time to switch between uplift maps, if using cell array (yr)
 UL.flex =.0000001e3;%effective elastic thickness (m)
-UL.kd = .001;%Diffusion coefficient (m2/yr)
+UL.kd = .00;%Diffusion coefficient (m2/yr)
 UL.m=.5;% Drainage area exponent in stream power 
 UL.n=1;%stream power n
 
@@ -39,7 +39,7 @@ UL.U=zeros(mm,nn)+.00000;
 UL.srho=2400; %Sediment density (kg/m3)
 UL.deposit=true; %Use marine deposition?
 UL.drawdt=10;% Plot topography every x timesteps
-UL.undercapacity=zeros(size(UL.Zi))+1;% Where to apply undercapacity model (1=undercapacity, 0=stream power).
+UL.undercapacity=ones(size(UL.Zi))+1;% Where to apply undercapacity model (1=undercapacity, 0=stream power).
 UL.l=1; %Length scale in undercapacity model (m)
 UL.ks =1; %Sediment transport coefficient in undercapacity model;
 UL.sinkfill = true; %Do not pair false with marine deposition - massive slowdown

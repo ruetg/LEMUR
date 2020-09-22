@@ -21,6 +21,7 @@ lemur::lemur(int i, int j)
     adds.resize(nn+1);
     Z.resize(nn+1);
         usedr.resize(nn+1);
+    runoff.resize(nn+1);
 
     std::fill(adds.begin(),adds.end(),0.0);
     slpis.resize(nn+1);
@@ -44,7 +45,6 @@ lemur::lemur(int i, int j)
     
     sinkfill.resize(nn+1);
     std::fill(sinkfill.begin(),sinkfill.end(),1);
-    landsurf=Z;
     U.resize(nn+1);
     std::fill(U.begin(),U.end(),0);
     
@@ -56,7 +56,8 @@ lemur::lemur(int i, int j)
     anglesz2.resize(nn);
     
     
-    
+    watertot.resize(nn+1);
+
     angleszi.resize(nn);
     zni.resize(nn);
     anglesx.resize(20);
@@ -79,7 +80,7 @@ lemur::lemur(int i, int j)
     anglesz2.resize(nn);
     catchments.resize(nn+1);
     nidx.resize(nn+1);
-    
+
     maxareasinkfill=0;
 }
 
@@ -97,6 +98,16 @@ void lemur::set(std::string nm,double val)
     else if (nm.compare("kd")==0)
     {
         kd=val;
+    }
+    else if (nm.compare("precip")==0)
+    {
+        precip = (double) val;
+        
+    }
+    else if (nm.compare("evaprate")==0)
+    {
+        evaprate = (double) val;
+        
     }
     else if (nm.compare("m")==0)
     {
@@ -123,9 +134,9 @@ void lemur::set(std::string nm,double val)
     {
         dx=val;
     }
-    else if (nm.compare("landsed") == 0)
+    else if (nm.compare("uselandsed") == 0)
     {
-        uselandsed=(bool)val;
+        uselandsed=val;
     }
     else if (nm.compare("dy")==0)
     {
@@ -635,6 +646,7 @@ void lemur::reset()
         stackij.clear();
     }
     std::fill(accgrid.begin(),accgrid.end(),0);
+   
     std::fill(sed.begin(),sed.end(),0);
     
     std::fill(ndons.begin(),ndons.end(),0);
@@ -996,9 +1008,14 @@ void lemur::erosion_fluvial()
 
     reset();
         
-
+   // Z=landsurf;
+    for (int i=1;i<=nn;i++)
+    {
+        Z[i] += watertot[i];
+    }
     if (usefd==false)
     {
+     
         findsteepest();
             
 
@@ -1008,9 +1025,13 @@ void lemur::erosion_fluvial()
         
     }
     getacc();
-    
+        runoff=accgrid;
+
+    for (int i=1;i<=nn;i++)
+    {
+        Z[i]-=watertot[i];
+    }
     erode();
-    std::cout<<ks<<std::endl;
     if (ks>1e-100)
     {
         fillls();
@@ -1052,7 +1073,7 @@ void lemur::erosion_fluvial()
             ero[i]=0;
         }
     }
-    
+
 }
 
 void lemur::erosion_fluvial2()
@@ -1074,7 +1095,6 @@ void lemur::erosion_fluvial2()
     {
         fillls2();
     }
-        std::cout<<'here5';
 
 }
 
@@ -1096,6 +1116,13 @@ std::vector<double> lemur::get(std::string nm)
             val[i-1]=accgrid[i];
         }
     }
+    else if (nm.compare("landsurf")==0)
+    {
+        for (int i=1;i<nn;i++)
+        {
+            val[i-1]=landsurf[i];
+        }
+    }
     else if (nm.compare("z")==0)
     {
         for (int i=1;i<nn+1;i++)
@@ -1110,9 +1137,25 @@ std::vector<double> lemur::get(std::string nm)
         {
             val[i-1]=sinkareas[i];
         }
+        
     }
 
     else if (nm.compare("k")==0)
+    {
+        for (int i=1;i<nn+1;i++)
+        {
+            val[i-1]=kval[i];
+        }
+        
+    }
+    else if (nm.compare("watertot")==0)
+    {
+        for (int i=1;i<nn+1;i++)
+        {
+            val[i-1]=watertot[i];
+        }
+    }
+        else if (nm.compare("k")==0)
     {
         for (int i=1;i<nn+1;i++)
         {
@@ -1128,14 +1171,7 @@ std::vector<double> lemur::get(std::string nm)
         }
         
     }
-    else if (nm.compare("ero")==0)
-    {
-        for (int i=1;i<nn+1;i++)
-        {
-            val[i-1]=ero[i];
-        }
-        
-    }
+
     else if (nm.compare("stack")==0)
     {
          for (int i=1;i<nn+1;i++)
@@ -1293,7 +1329,7 @@ void lemur::lakefill2()
     // typedef std::priority_queue<int,std::vector<int>,cmpr> mpr;
     // mpr open ((cmpr(&grid)));
     priorityq open(Z);
-    if (!uselandsed)
+    if (uselandsed==0)
     {
         
         for (int i=0;i<BC.size();i++)
@@ -1401,7 +1437,7 @@ void lemur::lakefill2()
                 if (Z[ij]<=Z[s])
                 {
                     
-                    Z[ij]=Z[s]+1e-8;
+                    Z[ij]=Z[s]+1e-5;
                     
                     pit[p]=ij;
                     p++;
@@ -1417,21 +1453,21 @@ void lemur::lakefill2()
             }
         }
     }
-    
-    
-    
 }
 
 
 void lemur::landsed()
 {
-    if (maxareasinkfill>0)
-    {
-        sinkareas.resize(nn+1);
-        std::fill(sinkareas.begin(),sinkareas.end(),0.0);
-    }
+
+    sinkareas.resize(nn+1);
+    std::fill(sinkareas.begin(),sinkareas.end(),0.0);
+    std::fill(watertot.begin(),watertot.end(),0.0);
 
     sed = ero;
+    double addprecip = 0;
+    double fact2 = 0;
+                            double fact;
+
     if (sed.size()<nn){sed.resize(nn+1);}
     std::vector<double> sedsub;
     sedsub.resize(nn+1);
@@ -1459,15 +1495,20 @@ void lemur::landsed()
     {
         usedr[i]=true;
     }
+    std::fill(runoff.begin(),runoff.end(),precip);
     //build cumulative sediment from ero and stream network
     //zero sediment everywhere but outlet to not count it twice
     //#pragma omp parallel for
 
     for (int i =nn;i>=1;i--)
     {
-        tsed+=ero[stack[i]];
         
-        sed[slpis[stack[i]]] +=sed[stack[i]];
+        tsed+=ero[stack[i]];
+        if (slpis[stack[i]]!=stack[i])
+        {
+            sed[slpis[stack[i]]] +=sed[stack[i]];
+            runoff[slpis[stack[i]]] += runoff[stack[i]];
+        }
     }
     int nsink=0;
     //#pragma omp parallel for
@@ -1477,6 +1518,7 @@ void lemur::landsed()
         {
             
             sed[stack[i]]=0;
+            runoff[stack[i]]=0;
             
         }
         else
@@ -1489,28 +1531,36 @@ void lemur::landsed()
     {
         if( (landsurf[i]<Z[i])&&(usedr[i])==false)
         {
-            
+
             nseds=0;
-            sedextra=0;
+            massextra=0;
+            massextra_precip=0;
             area=0;
+            volume=0;
             nrecur=0;
             //std::fill(sedlist.begin(),sedlist.end(),0);
             recursivesed(i);
-            double fact;
-            if (sedextra>=area)
+            fact=0;
+            fact2=0;
+            if (massextra>=volume)
             {
                 fact=1;
             }
-            else if (area>0)
+            else if (volume>0)
             {
-                fact = sedextra/area;
+                fact = massextra/volume;
             }
             
-            else
+            if (massextra_precip*dt+massextra-evaprate*area*dt>=volume)
             {
-                fact=0;
+                fact2=1;
+            }
+            else if (volume>0)
+            {
+                fact2 = std::max(0.0,(massextra_precip*dt-massextra-evaprate*area*dt)/volume);
             }
             
+
             double addsed=0;
             for (int j=1;j<=nseds;j++)
             {
@@ -1520,18 +1570,18 @@ void lemur::landsed()
                 }
                 
                 addsed = (Z[sedlist[j]]-landsurf[sedlist[j]])*fact;
-                landsurf[sedlist[j]]+=addsed;
-                if (maxareasinkfill>0)
-                {
-                    sinkareas[sedlist[j]]=area;
-                }
-                tsed2+=addsed;
+                landsurf[sedlist[j]] += addsed;
+                addprecip = (Z[sedlist[j]]-(landsurf[sedlist[j]]))*fact2;
+                
+                //landsurf[sedlist[j]] += addprecip;
+                watertot[sedlist[j]]+=addprecip;
+                sinkareas[sedlist[j]] = area;
                 
             }
             
         }
     }
-    if (maxareasinkfill>0)
+    if (maxareasinkfill>=0)
     {
         for (int i=1;i<nn+1;i++)
         {
@@ -1541,6 +1591,7 @@ void lemur::landsed()
             }
         }
     }
+    
     Z=landsurf;
 }
 void lemur::recursivesed(int ij)
@@ -1562,14 +1613,32 @@ void lemur::recursivesed(int ij)
             {
                 next[c]=idx[i]+ij;
                 usedr[ij+idx[i]]=true;
-                
+                //recursivesed(ij);
                 c++;
             }
             
         }
         
-        area+=(Z[ij]-landsurf[ij]);
-        sedextra+=sed[ij];
+        volume+=(Z[ij]-landsurf[ij]);
+        area+=1;
+        if (uselandsed==1)
+        {
+            massextra+=sed[ij];
+        }
+        else if (uselandsed ==2)
+        {
+            massextra_precip+=runoff[ij]*precip;
+            
+        }
+        else if (uselandsed == 3)
+        {
+            
+
+
+            massextra += sed[ij];
+            massextra_precip += runoff[ij]*precip;
+        }
+                
         c--;
         
         
@@ -1588,10 +1657,18 @@ void lemur::recursivesed(int ij)
 }
 void lemur::lakefill()
 {
-    if (uselandsed==1)
+    if (uselandsed>0)
     {
-        uselandsed=true;
+        //if (firstcall==1)
+      //  {landsurf=Z;}
         landsurf=Z;
+        reset();
+         findsteepest();
+            
+
+        getdonors();
+            
+        createstack2();
         
         lakefill2();
         
@@ -1599,10 +1676,9 @@ void lemur::lakefill()
     }
     else
     {
-        uselandsed=false;
+        uselandsed=0;
         landsurf = Z;
         lakefill2();
-        std::cout<<"ere";
         landsurf = Z;
     }
 }
@@ -1656,7 +1732,6 @@ void lemur::deposit()
             cat++;
         }
     }
-    //std::cout<<sumsedij<<std::endl;
     int rs;
     double lastsed=1e10;
     std::cout<<"nx= "<< nx << std::endl;

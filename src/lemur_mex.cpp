@@ -58,6 +58,9 @@ void mexFunction(
                 {
                     double val=mxGetScalar(prhs[i+1]);
                     grid.set(nm,val);
+                    if (nm.compare("uselandsed") == 0)
+    {
+    }
                 }
                 else if (mxIsDouble(prhs[i+1])&&siz>1)
                 {

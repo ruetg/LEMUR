@@ -1,6 +1,6 @@
 
 
-function [Z,FD,OUT] = lemur_wrapper(UL)
+function [Z,FD,OUT,f] = lemur(UL)
 
 clear mex;
 %Relatively constant constants
@@ -13,14 +13,17 @@ landsed=UL.massconservativesinkfill;
 [m,n] = size(UL.Zi);
 Z=UL.Zi;
 U=UL.U;
+k_sed=UL.k_sed;
 BC=UL.BC;
-k=UL.k;
+precip=UL.precip;
+evaprate =UL.evaprate;
 tt = UL.t;
 dt = UL.dt;
 tisoero=zeros(size(Z));
 dx = UL.dx;
 dy = UL.dy;
 fluvialm = UL.m;
+k=UL.k;
 kd = UL.kd;
 wdt = UL.wdt;
 flex = UL.flex;
@@ -35,7 +38,6 @@ FD.ix = ones(1,m*n);
 FD.ixc = ones(1,m*n);
 display=UL.display;
 firstcall=1;%First run through the time loop is the often the slowest, establish memory needed
-
 if firstcall
     vsave=0;%Saved radius indices used in deposition function
 end
@@ -43,6 +45,7 @@ end
 tic;
 %If erodibility is not a map, make it a map.
 if numel(k)==1
+    ki=k(1);
     k = ones(m,n)*k;
     
 end
@@ -84,19 +87,33 @@ FD.R=zeros(m*n,1);
 size(Z)
 
 lemur_mex(m,n);
+[X,Y] = meshgrid(1:n,1:m);
 
 %The ulem mex functions must be fed all necessary parameters
 lemur_mex('set','dx',dx,'dy',dy,'dt',dt);
 lemur_mex('set','l',l1,'ks',ks,'kd',kd);
-lemur_mex('set','m',fluvialm,'n',nval,'landsed',double(landsed),'maxareasinkfill',maxareasinkfill);
+lemur_mex('set','m',fluvialm,'n',nval,'precip',precip,'maxareasinkfill',maxareasinkfill);
+lemur_mex('set','uselandsed',landsed);
+lemur_mex('set','evaprate',evaprate);
 
 % main time loop
+  lemur_mex('set','firstcall',1);
+   hs=tight_subplot(1,2,.05,.05,.05);
+km=ki;
+ksedm = k_sed;
+tsed=0;
 for t = 0:dt:tt-dt
+    if t>tt/2
+        lemur_mex('set','precip',precip*2);
+                lemur_mex('set','evaprate',evaprate/2);
+
+         km=ki*2^.5;
+         k_sed = 2^.5*ksedm;
+
+    end
     lemur_mex('set','u',U(:));
     
     lemur_mex('set','z',Z(:));
-    
-    lemur_mex('set','k',k(:));
     lemur_mex('set','undercapacity',L(:))
     Zi = Z;
     %If uplift is a set of maps, use the a new map every <Udt> years
@@ -138,15 +155,25 @@ for t = 0:dt:tt-dt
     %keep track of sinkfill
     sinkfill = Z-sinkfill;
     sinkfill(BC)=0;
-    
+    tsinkfill = tsinkfill+sinkfill;
+
     %Fluvial erosion
     %%
     DEM=Z;
-    m
-    tic;lemur_mex('run','erode_fluvial');toc
-    
+    k(:)=km;
+    tsed = tsed-ero+sinkfill;
+    %tsed = -ero+sinkfill;
+    tsed = tsed/2 +abs(tsed)/2;
+    k(tsed>0)=k_sed;
+    lemur_mex('set','k',k(:));
+    lemur_mex('run','erode_fluvial');
+
+    disp('herex')
+ 
     Z=lemur_mex('get','z');
     Z=reshape(Z,m,n);
+    Z=Z+sinkfill;
+
     BCi = zeros(m,n);
     BCi(BC) = 1;
     Z(1,~BCi(1,:)) =  Z(2,~BCi(1,:));
@@ -161,6 +188,7 @@ for t = 0:dt:tt-dt
     ero(end,:)=0;
     ero(1,:)=0;
     ero(Z<0)=0;
+
     %%
     lemur_mex('set','ero',ero(:));
     lemur_mex('set','z',Z(:));
@@ -236,41 +264,63 @@ for t = 0:dt:tt-dt
         depo(sinkareas>maxareasinkfill)=sinkfill(sinkareas>maxareasinkfill);
         depo(Z<0)=0;
     end
+    water=lemur_mex('get','watertot');
     %Display topography every drawdt timesteps
-    if display && mod(t/dt,drawdt)==0
-        figure(2);
-       % Z(BC)=9999;
-        h=imagesc(Z);shading interp;
-        demcmap(Z)
-        %[LON,LAT]=meshgrid(1:n,1:m);hold off;
-        %dem((1:n).*.1,(1:m).*.075,Z,'latlon','zlim',[-3e4,3e4]);
+    FD.I=lemur_mex('get','stack');
+    FD.R=lemur_mex('get','rec');
+    sed=getacc(ero,FD);
+    smax(t/dt+1)=max(max(sed(95:105,75:135)));
+    if display ==1 && mod(t/dt,drawdt)==0
+        axes(hs(2));
+        hold off;
+
+        pcolor(Z);shading interp;demcmap([0 6000]);
+        hold on;
+
+        x=X(k==k_sed);
+        y=Y(k==k_sed);
+        
+        if length(x)>0
+            rands = randi(length(x),[1,length(x)]);
+            scatter(x(rands),y(rands),50,[1,1,0],'filled','s','markerfacealpha',.5,'markeredgealpha',.5)
+%            p.Color(4)=.4;
+            
+        end
+        
+        x=X(water>0);
+        y=Y(water>0);
+        if length(x)>0
+            rands = randi(length(x),[1,length(x)]);
+            scatter(x(rands),y(rands),50,[0,0,1],'filled','s','markerfacealpha',.5,'markeredgealpha',.5)
+%                        p.Color(4)=.4;
+
+        end
+        plotstrm(FD,Z,X,Y);
+        set(gca,'fontsize',14);
+        c=colorbar;
+        title(c,'elevation (m)');
+
+                    axes(hs(1));
+        hold off
+        plot(0:dt/1000:t/1000,smax*dx*dy/dt,'linewidth',2)
+        xlabel('time (ka)')
+        set(gca,'fontsize',14);
+        ylabel('Sed. flux (m^3/yr)')
+        er=ero(100:350,:);
+        mean(mean(er))
+        set(gcf,'units','normal','position',[0 0 .9 .9]);
+        title([num2str(t),' yrs gone by']);
         drawnow;
-     %   hold on;
-        
-        %%
-        
-        % figure(2);drawnow;
-        %               frame = getframe(gcf);
-        %       im = frame2im(frame);
-        %       [imind,cm] = rgb2ind(im,256);
-        %       % Write to the GIF File
-        %       if t == 0
-        %           imwrite(imind,cm,'AA','gif', 'Loopcount',inf,'delaytime',.1);
-        %       else
-        %           imwrite(imind,cm,'AA','gif','WriteMode','append','delaytime',.1);
-        %       end
+        f(t/(drawdt*dt)+1)=getframe(gcf);
         
     end
     
     
-    nd=0;
-    tsinkfill = tsinkfill+sinkfill+nd;
     tdepo = tdepo+depo;
     
     %Output
     %Write output every wdt years
-    FD.I=lemur_mex('get','stack');
-    FD.R=lemur_mex('get','rec');
+
     if mod(t,wdt)==0
         
         wt = floor(t/(wdt+1e-9))+1;
@@ -282,10 +332,29 @@ for t = 0:dt:tt-dt
         OUT(wt).diffusion = tdiffu;
         OUT(wt).sinkfill = tsinkfill;
     end
-    
     firstcall=0;
     
     [~,rtrt(t/dt+1)]=max(Z(:,250));
+    lemur_mex('set','firstcall',0);
 end
+% v=VideoWriter('~/climate_w_ero.mp4','mpeg-4');
+% v.FrameRate=5;
+% v.open()
+% 
+% v.writeVideo(f);
+% v.close();
 %save('rtrt','rtrt');
+end
+function plotstrm(FD,Z1,LON,LAT)
+thres=500;
+[mm,nn]=size(Z1);
+acc = zeros(mm,nn)+1;
+    FD.ix=(FD.I);
+    FD.ixc = FD.R(FD.I);
+    for i = length(FD.I):-1:1
+        acc(FD.ixc(i)) = acc(FD.ixc(i)) + acc(FD.ix(i));
+    end
+
+plot(LON(acc>thres),LAT(acc>thres),'.k','markersize',2);
+end
 

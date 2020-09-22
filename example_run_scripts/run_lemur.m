@@ -20,7 +20,7 @@ UL.dx = 3000;%Grid distance (m)
 UL.dy = 3000;
 UL.t=10e6;%total time (yr)
 UL.dt=1e5;%time step (yr)
-UL.display=1;%display topo during run?
+UL.display=0;%display topo during run?
 UL.Udt = 1e3;%Time to switch between uplift maps, if using cell array (yr)
 UL.flex =.0000001e3;%effective elastic thickness (m)
 UL.kd = .00;%Diffusion coefficient (m2/yr)
@@ -43,6 +43,7 @@ UL.firstcall=0;
 UL.U=zeros(mm,nn)+.00000;
 %UL.U(150:end,:)=.0;
 %UL.Zi=Z2;
+UL.precip = 1;
 UL.srho=2400; %Sediment density (kg/m3)
 UL.deposit=true; %Use marine deposition?
 UL.drawdt=10;% Plot topography every x timesteps
@@ -51,5 +52,7 @@ UL.l=1; %Length scale in undercapacity model (m)
 UL.ks =1; %Sediment transport coefficient in undercapacity model;
 UL.sinkfill = true; %Do not pair false with marine deposition - massive slowdown
 UL.massconservativesinkfill = false; %mass conservative sinkfill? - this is not recommended to be paired with marine deposition
+%A value of 1 means fill with sediment and a value of 2 means fill with
+%runoff
 UL.maxareasinkfill = 1000000;
 [Z2,FD,SS] = lemur(UL); 

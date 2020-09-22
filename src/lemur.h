@@ -1,5 +1,5 @@
 
-#ifndef LEMUR_h
+#ifndef LEMUR_H
 #define LEMUR_H
 
 #include <iostream>
@@ -36,6 +36,7 @@ private:
     
     double L;
     double T=0;
+    
     double m;
     int nstep;
     int nn;
@@ -49,7 +50,7 @@ private:
     int ny=1;
     double ks=.0001;
     double dx;
-    int firstcall;
+    int firstcall = 1;
     std::vector<int> slpis ;
     double kd;
     double tt;
@@ -83,7 +84,7 @@ private:
     
     void filll();
     void getdonors();
-    
+    double volume;
     void findsteepest();
     void createstack();
     void createstack2();
@@ -121,16 +122,17 @@ private:
     void lakefill2();
     std::vector<int> sinkfill;
     std::vector<double> sed;
-    bool uselandsed=false;
+    int uselandsed;
     std::vector<bool> usedr;
     void recursivesed(int);
-    double sedextra;
+    double massextra;
     double area;
     std::vector<int>sedlist;
     std::vector<int> next;
-    
+    double precip = 1;
     int nrecur;
     int nseds;
+    double evaprate =0;
     std::vector<double> landsurf;
     
     std::vector<double> d,dsi;
@@ -155,7 +157,9 @@ private:
     std::vector<std::vector<int>> I;
     std::vector<int> ic;
     std::vector<int> ic2;
-    
+    double massextra_precip = 0;
+
+    std::vector<double> watertot;
     std::vector<std::vector<double>> Dist2;
     
     std::vector<double> anglespolar1;
@@ -164,7 +168,7 @@ private:
     std::vector<int> xs;
     std::vector<int> ys2;
     std::vector<int> xs2;
-    
+    std::vector<double> runoff;
     
     std::vector<int> anglesi2;
     std::vector<int> zni;

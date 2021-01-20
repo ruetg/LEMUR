@@ -45,10 +45,10 @@ end
 tic;
 %If erodibility is not a map, make it a map.
 if numel(k)==1
-    ki=k(1);
     k = ones(m,n)*k;
     
 end
+    ki=k(1);
 
 %Is uplift a set of maps or just one map?
 dynamicU = 0;
@@ -98,7 +98,9 @@ lemur_mex('set','evaprate',evaprate);
 
 % main time loop
   lemur_mex('set','firstcall',1);
+  if display
    hs=tight_subplot(1,2,.05,.05,.05);
+  end
 km=ki;
 ksedm = k_sed;
 tsed=0;
@@ -160,16 +162,16 @@ for t = 0:dt:tt-dt
     %Fluvial erosion
     %%
     DEM=Z;
-    k(:)=km;
+    %k(:)=km;
     tsed = tsed-ero+sinkfill;
     %tsed = -ero+sinkfill;
     tsed = tsed/2 +abs(tsed)/2;
-    k(tsed>0)=k_sed;
+    %k(tsed>0)=k_sed;
     lemur_mex('set','k',k(:));
     lemur_mex('run','erode_fluvial');
-
+    
     disp('herex')
- 
+    
     Z=lemur_mex('get','z');
     Z=reshape(Z,m,n);
     Z=Z+sinkfill;
@@ -270,6 +272,11 @@ for t = 0:dt:tt-dt
     FD.R=lemur_mex('get','rec');
     sed=getacc(ero,FD);
     smax(t/dt+1)=max(max(sed(95:105,75:135)));
+    if 1% temporary
+        pcolor(Z);shading interp;axis off;
+        demcmap([0 1000]);
+        drawnow;
+    end
     if display ==1 && mod(t/dt,drawdt)==0
         axes(hs(2));
         hold off;
@@ -291,8 +298,10 @@ for t = 0:dt:tt-dt
         y=Y(water>0);
         if length(x)>0
             rands = randi(length(x),[1,length(x)]);
-            scatter(x(rands),y(rands),50,[0,0,1],'filled','s','markerfacealpha',.5,'markeredgealpha',.5)
+            if 0
+                scatter(x(rands),y(rands),50,[0,0,1],'filled','s','markerfacealpha',.5,'markeredgealpha',.5)
 %                        p.Color(4)=.4;
+            end
 
         end
         plotstrm(FD,Z,X,Y);
@@ -309,13 +318,15 @@ for t = 0:dt:tt-dt
         er=ero(100:350,:);
         mean(mean(er))
         set(gcf,'units','normal','position',[0 0 .9 .9]);
+
         title([num2str(t),' yrs gone by']);
         drawnow;
         f(t/(drawdt*dt)+1)=getframe(gcf);
         
     end
     
-    
+    set(gcf,'units','normal','position',[0 0 .9 .9]);
+    hold off;
     tdepo = tdepo+depo;
     
     %Output
@@ -333,7 +344,8 @@ for t = 0:dt:tt-dt
         OUT(wt).sinkfill = tsinkfill;
     end
     firstcall=0;
-    
+    set(gcf,'Units','normal')
+    f(t/dt+1)=getframe(gcf);
     [~,rtrt(t/dt+1)]=max(Z(:,250));
     lemur_mex('set','firstcall',0);
 end

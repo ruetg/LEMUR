@@ -238,6 +238,7 @@ void lemur::set(std::string nm,std::vector<double> val)
     {
         if (nm.compare("z")==0)
         {
+            std::cout<<"z";
             for (int i=1;i<nn+1;i++)
             {
                 Z[i]=val[i-1];
@@ -246,10 +247,12 @@ void lemur::set(std::string nm,std::vector<double> val)
         }
         if (nm.compare("k")==0)
         {
+            std::cout<<"k";
             for (int i=1;i<nn+1;i++)
             {
-                kval[i]=kval[i-1];
+                kval[i]=val[i-1];
             }
+            std::cout[kval[2]]
             
         }
         if (nm.compare("undercapacity")==0)
@@ -257,7 +260,7 @@ void lemur::set(std::string nm,std::vector<double> val)
             
             for (int i=1;i<nn+1;i++)
             {
-                undercapacity[i]=undercapacity[i-1];
+                undercapacity[i]=val[i-1];
             }
             
         }
@@ -1125,6 +1128,8 @@ std::vector<double> lemur::get(std::string nm)
     }
     else if (nm.compare("z")==0)
     {
+        std::cout<<"z";
+ 
         for (int i=1;i<nn+1;i++)
         {
             val[i-1]=Z[i];
@@ -1142,6 +1147,7 @@ std::vector<double> lemur::get(std::string nm)
 
     else if (nm.compare("k")==0)
     {
+        std::cout<<kval[2];
         for (int i=1;i<nn+1;i++)
         {
             val[i-1]=kval[i];
@@ -1163,11 +1169,11 @@ std::vector<double> lemur::get(std::string nm)
         }
         
     }
-    else if (nm.compare("test")==0)
+    else if (nm.compare("undercapacity")==0)
     {
         for (int i=1;i<nn+1;i++)
         {
-            val[i-1]=test[i];
+            val[i-1]=undercapacity[i];
         }
         
     }

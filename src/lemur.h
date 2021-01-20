@@ -57,7 +57,7 @@ private:
     double n_;
     double maxareasinkfill;
     std::vector<double> BC;
-    std::vector<std::vector<int>> stackij;
+    std::vector<std::vector<int> > stackij;
     std::vector<int> idx;
     
     std::vector<int> ndons;
@@ -149,18 +149,18 @@ private:
     double critangle=10;//cone angle
     std::vector<int> catchments;
     int itriangle(int,int,int,int);
-    std::vector<std::vector<int>> anglesx;
-    std::vector<std::vector<int>> anglesy;
-    std::vector<std::vector<int>> anglesx2;
-    std::vector<std::vector<int>> anglesy2;
-    std::vector<std::vector<double>> Dist;
-    std::vector<std::vector<int>> I;
+    std::vector<std::vector<int> > anglesx;
+    std::vector<std::vector<int> > anglesy;
+    std::vector<std::vector<int> > anglesx2;
+    std::vector<std::vector<int> > anglesy2;
+    std::vector<std::vector<double> > Dist;
+    std::vector<std::vector<int> > I;
     std::vector<int> ic;
     std::vector<int> ic2;
     double massextra_precip = 0;
 
     std::vector<double> watertot;
-    std::vector<std::vector<double>> Dist2;
+    std::vector<std::vector<double> > Dist2;
     
     std::vector<double> anglespolar1;
     std::vector<double> anglespolar2;
@@ -180,3 +180,17 @@ private:
     
 };
 #endif
+
+
+
+// Change number numbering system of rivers
+// Look over esurf
+// Quantitative metrics when describing correlations/durations - tea leaves, discussion
+// Cumulative effect on eroded sediment
+// Other rivers - not s1 - s12, unaffected by landslides (control rivers)
+// Same 12 rivers, show it is a localized effect - spatially (comparison to rivers hit hard by ls vs 
+// those that weren't 
+// flood distribution 
+// comparison of different methods
+// how long do effects last
+// a and b before morakot - stable mean before / after (?) 

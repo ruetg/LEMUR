@@ -4,5 +4,6 @@ function a = addpaths()
     addpath ../data/
     addpath ../matlab/
     addpath ../example_run_scripts
+    
     a=1;
 end

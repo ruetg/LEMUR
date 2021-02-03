@@ -250,9 +250,9 @@ void lemur::set(std::string nm,std::vector<double> val)
             std::cout<<"k";
             for (int i=1;i<nn+1;i++)
             {
-                kval[i]=kval[i-1];
+                kval[i]=val[i-1];
             }
-            std::cout[kval[2]]
+            //std::cout[kval[2]]
             
         }
         if (nm.compare("undercapacity")==0)
@@ -260,7 +260,7 @@ void lemur::set(std::string nm,std::vector<double> val)
             
             for (int i=1;i<nn+1;i++)
             {
-                undercapacity[i]=undercapacity[i-1];
+                undercapacity[i]=val[i-1];
             }
             
         }

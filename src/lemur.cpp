@@ -252,7 +252,7 @@ void lemur::set(std::string nm,std::vector<double> val)
             {
                 kval[i]=val[i-1];
             }
-            std::cout[kval[2]]
+            //std::cout[kval[2]]
             
         }
         if (nm.compare("undercapacity")==0)

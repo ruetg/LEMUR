@@ -1,0 +1,1 @@
+( find . -type d -name ".DS_STORE" && find .  -name "thumbnail_image.png" ) | xargs rm -rf

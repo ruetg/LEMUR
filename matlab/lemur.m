@@ -57,7 +57,7 @@ if isa(U,'cell')
     dynamicU = 1;
     iU = U;
     U = iU{1};
-    Udt = params(10);
+    Udt = UL.Udt;
 else
     Udt = 3;
     if length(U) ==1
@@ -113,7 +113,7 @@ for t = 0:dt:tt-dt
          k_sed = 2^.5*ksedm;
 
     end
-    lemur_mex('set','u',U(:));
+%    lemur_mex('set','u',U(:));
     
     lemur_mex('set','z',Z(:));
     lemur_mex('set','undercapacity',L(:))
@@ -144,7 +144,7 @@ for t = 0:dt:tt-dt
     end
     lemur_mex('set','bc',BC(:));
     disp(strcat(num2str(t),' years gone by'));
-    
+
     
     sinkfill=Z;
     %Sink filling algorithm - if use "landsed" option for mass conservative
@@ -158,7 +158,7 @@ for t = 0:dt:tt-dt
     sinkfill = Z-sinkfill;
     sinkfill(BC)=0;
     tsinkfill = tsinkfill+sinkfill;
-
+wt=1;
     %Fluvial erosion
     %%
     DEM=Z;
@@ -197,6 +197,10 @@ for t = 0:dt:tt-dt
     tero = ero + tero;
     
     %Diffusion presently only supports square cells
+    if numel(U)>1
+        U = imresize(U,size(ero));
+    end
+
     if  kd~=0
         diffu =Z;
         lemur_mex('set','seadiffusion',0);
@@ -211,8 +215,11 @@ for t = 0:dt:tt-dt
         tdiffu = tdiffu+diffu;
         
     else
-        U(BC) = 0;
-        diffu = 0;
+        size(U)
+        if numel(U) > 1
+            U(BC) = 0;
+            diffu = 0;
+        end
     end
     
     %Deposition presently only supports square cells
@@ -261,7 +268,10 @@ for t = 0:dt:tt-dt
     if sinkfilling&&landsed
         sinkareas=lemur_mex('get','sinkareas');
     end
+     %modified for nz data, must interpolate because grid is too large
+     size(U)
     Z = Z+U*dt;
+
     if sinkfilling&&landsed
         depo(sinkareas>maxareasinkfill)=sinkfill(sinkareas>maxareasinkfill);
         depo(Z<0)=0;
@@ -273,15 +283,15 @@ for t = 0:dt:tt-dt
     sed=getacc(ero,FD);
     smax(t/dt+1)=max(max(sed(95:105,75:135)));
     if 1% temporary
-        pcolor(Z);shading interp;axis off;
-        demcmap([0 1000]);
+        imagesc(flipud(Z));shading interp;axis off;
+        demcmap([-1000 1000]);
         drawnow;
     end
-    if display ==1 && mod(t/dt,drawdt)==0
+    if display ==1 && mod(t/dt,drawdt)==0&&0
         axes(hs(2));
         hold off;
 
-        pcolor(Z);shading interp;demcmap([0 6000]);
+        pcolor(Z);shading interp;demcmap([-5000 4000]);
         hold on;
 
         x=X(k==k_sed);
@@ -331,10 +341,15 @@ for t = 0:dt:tt-dt
     
     %Output
     %Write output every wdt years
+mean(mean(ero(Z>0)))
+    if (length(wdt)>1&&ismember(t,wdt)) || ...
+            (length(wdt) == 1 && mod(t,wdt)==0)
+        if length(wdt) == 1
+            wt = floor(t/(wdt+1e-9))+1;
+        else
+            wt = wt+1;
+        end
 
-    if mod(t,wdt)==0
-        
-        wt = floor(t/(wdt+1e-9))+1;
         OUT(wt).topo = Z;
         OUT(wt).ero = tero;
         OUT(wt).FD = FD;

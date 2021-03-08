@@ -33,7 +33,10 @@ private:
     std::vector<double> kval;
     bool usefd=false;
     std::vector<double> ero;
-    
+    void checkparam(std::string, std::vector<double>&);
+    void checkparam(std::string, std::vector<int> &);
+
+    void checkparams();
     double L;
     double T=0;
     
@@ -56,7 +59,7 @@ private:
     double tt;
     double n_;
     double maxareasinkfill;
-    std::vector<double> BC;
+    std::vector<int> BC;
     std::vector<std::vector<int> > stackij;
     std::vector<int> idx;
     
@@ -122,7 +125,7 @@ private:
     void lakefill2();
     std::vector<int> sinkfill;
     std::vector<double> sed;
-    int uselandsed;
+    int uselandsed=0;
     std::vector<bool> usedr;
     void recursivesed(int);
     double massextra;

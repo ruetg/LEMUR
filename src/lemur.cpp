@@ -93,7 +93,6 @@ void lemur::set(std::string nm,double val)
     if (nm.compare("firstcall")==0)
     {
         firstcall=val;
-        std::cout<<val;
     }
     else if (nm.compare("kd")==0)
     {
@@ -238,7 +237,6 @@ void lemur::set(std::string nm,std::vector<double> val)
     {
         if (nm.compare("z")==0)
         {
-            std::cout<<"z";
             for (int i=1;i<nn+1;i++)
             {
                 Z[i]=val[i-1];
@@ -247,7 +245,6 @@ void lemur::set(std::string nm,std::vector<double> val)
         }
         if (nm.compare("k")==0)
         {
-            std::cout<<"k";
             for (int i=1;i<nn+1;i++)
             {
                 kval[i]=val[i-1];
@@ -688,7 +685,7 @@ void lemur::filll()
             {
                 if (Z[stackij[j][i]]<=Z[slpis[stackij[j][i]]])
                 {
-                    Z[stackij[j][i]]=Z[slpis[stackij[j][i]]]+1e-6;
+                    Z[stackij[j][i]]=Z[slpis[stackij[j][i]]]+1e-4;
                 }
             }
         }
@@ -1105,7 +1102,7 @@ std::vector<double> lemur::get(std::string nm)
 {
     std::vector<double> val;
     val.resize(nn);
-    if (nm.compare("bc")==0)
+    if (nm.compare("bcx")==0)
     {
         for (int i=1;i<nn;i++)
         {
@@ -1115,6 +1112,13 @@ std::vector<double> lemur::get(std::string nm)
     else if (nm.compare("acc")==0)
     {
         for (int i=1;i<nn;i++)
+        {
+            val[i-1]=accgrid[i];
+        }
+    }
+    else if (nm.compare("bc")==0)
+    {
+        for (int i=0;i<BC.size();i++)
         {
             val[i-1]=accgrid[i];
         }
@@ -1202,21 +1206,23 @@ std::vector<double> lemur::get(std::string nm)
 class priorityq
 {
 public:
-    int queue;
     priorityq(std::vector<double>&);
-    std::vector<int> left;
-    std::vector<double> z;
+
     void push(int);
     int pop();
     int top();
-    int numel=0;
     
 private:
     int nn;
+    int numel=0;
+
+    int queue;
     int tmp;
     int u;
     int uu;
     int ul;
+    std::vector<int> left;
+    std::vector<double> z;
     
 };
 
@@ -1638,17 +1644,10 @@ void lemur::recursivesed(int ij)
         }
         else if (uselandsed == 3)
         {
-            
-
-
             massextra += sed[ij];
             massextra_precip += runoff[ij]*precip;
         }
-                
         c--;
-        
-        
-        
         if (c>=0)
         {
             ij=next[c];
@@ -1661,8 +1660,80 @@ void lemur::recursivesed(int ij)
         
     }
 }
+void lemur::checkparam(std::string name, std::vector<double> &var)
+{
+    if (var.size() < nn + 1 )
+    {
+        std::cout<< "\n" << name << " is not the correct sizef "<< "\n";
+
+        return;
+    }
+    else
+    {
+        for (int i = 0 ;i <= nn; i ++)
+        {
+            if ((var[i] <-1e15) || (var[i] > 1e15))
+            {
+                std::cout<< "\n" << name << " not set properly "<< "\n";
+                return;
+            }
+        }
+    }
+     
+}
+
+void lemur::checkparam(std::string name, std::vector<int> &var)
+{
+    if (var.size() < nn + 1 && !name.compare("bc"))
+    {
+        std::cout<< "\n" << name << " is not the correct size "<< "\n";
+        return;
+    }
+    else if (var.size() < nn + 1 && name.compare("bc"))
+    {
+        for (int i = 0 ;i < BC.size(); i ++)
+        {
+            if (var[i] < 0) 
+            {
+                std::cout<< "\n" << name << " not set properly -"<< "\n";
+            }
+            if ((var[i] > nn+1))
+            {
+                std::cout<< "\n" << name << " not set properly +"<< "\n";
+
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0 ;i <= nn; i ++)
+        {
+            if ((var[i] < 0) || (var[i] > 10))
+            {
+                std::cout<< "\n" << name << " not set properly "<< "\n";
+
+                return;
+
+            }
+        }
+    }
+     
+}
+
+void lemur::checkparams()
+{
+    std::string p = "Z";
+    checkparam( p, Z );
+    p = "BC";
+    checkparam( p, BC );
+
+}
+
+
+
 void lemur::lakefill()
 {
+    checkparams();
     if (uselandsed>0)
     {
         //if (firstcall==1)

@@ -84,10 +84,7 @@ lemur::lemur(int i, int j)
     maxareasinkfill=0;
 }
 
-void lemur::set(std::string nm,int val)
-{
-    
-}
+
 void lemur::set(std::string nm,double val)
 {
     if (nm.compare("firstcall")==0)
@@ -132,6 +129,7 @@ void lemur::set(std::string nm,double val)
     else if (nm.compare("dx")==0)
     {
         dx=val;
+        std::cout<<" 2 " << std::endl;
     }
     else if (nm.compare("uselandsed") == 0)
     {
@@ -140,6 +138,9 @@ void lemur::set(std::string nm,double val)
     else if (nm.compare("dy")==0)
     {
         dy=val;
+        
+                std::cout<<" 3 " << std::endl;
+
     }
     
     else if (nm.compare("seadiffusion")==0)
@@ -643,7 +644,7 @@ void lemur::reset()
 
     if (usefd==false)
     {
-        stackij.clear();
+        std::fill(stackij.begin(),stackij.end(),0);
     }
     std::fill(accgrid.begin(),accgrid.end(),0);
    
@@ -1005,8 +1006,9 @@ void lemur::basinfill(int ij,int ij1)
 }
 void lemur::erosion_fluvial()
 {    
-
-    reset();
+if (firstcall == 0)
+{reset();
+}
         
    // Z=landsurf;
     for (int i=1;i<=nn;i++)
@@ -1073,6 +1075,7 @@ void lemur::erosion_fluvial()
             ero[i]=0;
         }
     }
+    firstcall = 0;
 
 }
 
@@ -1739,7 +1742,7 @@ void lemur::lakefill()
         //if (firstcall==1)
       //  {landsurf=Z;}
         landsurf=Z;
-        reset();
+       // reset();
          findsteepest();
             
 

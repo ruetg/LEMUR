@@ -46,13 +46,13 @@ private:
     double dt;
     std::vector<int> stack;
     std::vector<int> undercapacity;
-    double dy;
+    double dy = 10;
     std::vector<double> adds;
     std::vector<double> Z;
     int nx=1;
     int ny=1;
     double ks=.0001;
-    double dx;
+    double dx = 10;
     int firstcall = 1;
     std::vector<int> slpis ;
     double kd;

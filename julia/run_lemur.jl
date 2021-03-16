@@ -63,11 +63,11 @@ mutable struct lemur_obj
         obj.precip = 1.0
         obj.kd = 1.0
         obj.ks = 0
-        obj.dt = 1e5
-        obj.t = 3e5
+        obj.dt = 1e6
+        obj.t = 3e6
         obj.undercapacity = zeros(Int(obj.ny), Int(obj.nx)) 
         obj.k_sed = obj.k
-        obj.flex = 10e3
+        obj.flex = 20e3
         obj.dx = 1000
         obj.dy = 1000
         obj.m = .5
@@ -157,7 +157,7 @@ function run(lemur_params)
         @cxx model -> lakefill()
         
         subplots(figsize=[5,5])
-        imshow(z)
+        imshow(z,cmap = "RdYlBu_r")
         colorbar()
         println("1")
     end

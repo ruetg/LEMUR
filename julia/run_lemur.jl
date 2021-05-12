@@ -1,3 +1,5 @@
+export set_param
+
 mutable struct lemur_obj
     k::Array{Float64,2}
     undercapacity::Array{Float64,2}
@@ -24,6 +26,7 @@ mutable struct lemur_obj
     drawdt::Float64
     l::Float64
     ks::Float64
+    t_c::Float64
     sinkfill::Float64
     uselandsed::Float64
     maxareasinkfill::Float64
@@ -38,7 +41,7 @@ mutable struct lemur_obj
         obj.sinkfill = 1;
         obj.ny = 500
         obj.nx = 500
-        obj.z = rand(Int(obj.ny), Int(obj.nx)) .* 10 .+ 100;
+        obj.z = rand(Int(obj.ny), Int(obj.nx)) .* 10 .+ 2000;
         #obj.z ./=maximum(vec(obj.z));
         obj.display = 1
         obj.udt = 100000
@@ -55,7 +58,8 @@ mutable struct lemur_obj
         obj.srho = 2400
         obj.udt = 1e5
         obj.bc = float(findall(bc .== 1))
-        obj.k = zeros(Int(obj.ny),Int(obj.nx)) .+ 1e-6
+        obj.k = zeros(Int(obj.ny),Int(obj.nx)) .+ 4e-7
+
         obj.firstcall = 1
         obj.l = 1
         obj.evaprate = 1e-30
@@ -63,31 +67,59 @@ mutable struct lemur_obj
         obj.precip = 1.0
         obj.kd = 1.0
         obj.ks = 0
-        obj.dt = 1e5
-        obj.t = 3e5
+        obj.dt = 1e6
+        obj.t = 200e6
         obj.undercapacity = zeros(Int(obj.ny), Int(obj.nx)) 
         obj.k_sed = obj.k
-        obj.flex = 10e3
+        obj.flex = 30e3
         obj.dx = 1000
         obj.dy = 1000
         obj.m = .5
+        obj.t_c = 100e6
         obj.n = 1
         obj.u = zeros(Int(obj.ny), Int(obj.nx)) .+ .000000000000001
         return obj
     end
     lemur_obj()
-    
+
+
 end
+
+function set_param(obj::lemur_obj, nm::AbstractString, val::Any)
+   # print(obj.k)
+    setfield!(obj,Symbol(nm),val)
+    m,n = size(val)
+    if (m != obj.nx) | (n!= obj.ny)
+        println("Warn: inconsistent size")
+    end
+    if all(size(obj.undercapacity) .!= size(val))
+        println("Warn: inconsistent size in undercapacity")
+    end
+    if all(size(obj.k) .!= size(val))
+        println("Warn: inconsistent size in undercapacity")
+    end
+    if all(size(obj.k) .!= size(val))
+        println("Warn: inconsistent size in k")
+    end
+    if all(size(obj.bcx) .!= size(val))
+        println("Warn: inconsistent size in bc")
+    end
+    if all(size(obj.z) .!= size(val))
+        println("Warn: inconsistent size in bc")
+    end
+    return obj
+end
+
 module run_lemur
 
-using PyPlot
+using Plots
 using Cxx
 using Libdl
 include("/Users/gr_1/Documents/IsoFlex/IsoFlex.jl")
 
 
 
-pw = pwd() * "/../src/"
+pw = "//Users/gr_1/Documents/lemur/src/"
 Libdl.dlopen(pw * "liblemur", Libdl.RTLD_GLOBAL)
 cxxinclude(pw * "lemur.h")
 
@@ -98,8 +130,9 @@ function set_lemur(maker, nm, var::Array{Float64})
     x = convert(cxxt"double *",pointer(var));
     @cxx maker -> set(pointer(nm), x, length(var))
     return
-
 end
+
+
 function set_lemur(maker, nm, var::Float64)
     print("here2")
     x = convert(cxxt"double",var);
@@ -113,19 +146,29 @@ function get_lemur(maker, nm, ny, nx)
     return z
     
 end
-function run(lemur_params)
-    model = @cxxnew lemur(lemur_params.ny,lemur_params.nx)
+
+mutable struct datas
+    u::Array{Float64,3}
+    z::Array{Float64,3}
+    u2::Array{Float64,3}
+
+    function datas()
+        obj = new()
+    end
+    datas()
+
+end
+function run(lemur_params; compute_sedflux = false)
+    model = @cxxnew lemur(lemur_params.ny, lemur_params.nx)
 
     for nm = fieldnames(typeof(lemur_params))
         print(string(nm,' '))
         if length(getfield(lemur_params,nm)) <= 1
             println(getfield(lemur_params,nm))
         end
-
         set_lemur(model, string(nm), getfield(lemur_params,nm))
     end
-    print("here")
-
+    
 
     z = get_lemur(model, "z", lemur_params.ny, lemur_params.nx)
     zi = zeros(size(z))
@@ -137,32 +180,55 @@ function run(lemur_params)
     z = copy(get_lemur(model, "z", lemur_params.ny, lemur_params.nx))
 
     zi[:] .= z[:]
+    sedflux = nothing 
+    data = datas()
+    data.z = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
+    data.u = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
+    data.u2 = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
 
-    for t = 0:lemur_params.dt:lemur_params.t    
-        @cxx model -> erosion_fluvial()
-        z =  copy(get_lemur(model, "z", lemur_params.ny, lemur_params.nx))
-        z[lemur_params.bcx .== 1] .= 0
-        ero .= copy(zi .- z)
-        zi .= z
+        for t = 0:lemur_params.dt:lemur_params.t
+        t2 = @time begin
+            @cxx model -> erosion_fluvial()
 
-        z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0]
-        u = IsoFlex.flexural(ero,dx=lemur_params.dx,dy=lemur_params.dy,Te=lemur_params.flex,buffer=200)
+            z =  copy(get_lemur(model, "z", lemur_params.ny, lemur_params.nx))
+            z[lemur_params.bcx .== 1] .= 0
+            ero .= copy(zi .- z)
+            zi .= z
 
-       # u = IsoFlex.flexural(ero,dx=lemur_params.dx,dt=lemur_params.dt, tt = lemur_params.t, t = t,
-       # dy=lemur_params.dy,Te=lemur_params.flex,buffer=200)
+
+            z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0]
+           # u = IsoFlex.flexural(ero,dx=lemur_params.dx,dy=lemur_params.dy,Te=lemur_params.flex,buffer=200)
+            u,u2=IsoFlex.viscoelastic_lithos(ero; dx=lemur_params.dx,dt=lemur_params.dt, tt = lemur_params.t, t = t,
+            dy=lemur_params.dy,Te=lemur_params.flex,buffer = 200, t_c = lemur_params.t_c)
+            #u2 = u;
+            z[lemur_params.bcx .== 0] .+= u[lemur_params.bcx .== 0]
+
+            set_lemur(model,"z", vec(z))
+            @cxx model -> lakefill()
+        end
+        i = floor(Int16,t/lemur_params.dt+1)
+        println(i)
+        data.z[:,:,i] = z;
+        data.u[:,:,i] = u;
+        data.u2[:,:,i] = u2;
         
-        z[lemur_params.bcx .== 0] .+= u[lemur_params.bcx .== 0]
+        if compute_sedflux
+            sed = copy(ero)
+            I = get_lemur(model, "stack", lemur_params.ny, lemur_params.nx)
+            R = get_lemur(model, "rec", lemur_params.ny, lemur_params.nx)
+            println(I[end])
 
-        set_lemur(model,"z", vec(z))
-        @cxx model -> lakefill()
-        
-        subplots(figsize=[5,5])
-        imshow(z)
-        colorbar()
-        println("1")
+            for j =length(I):-1:1
+                if I[j]!=R[j]
+                    sed[Int(R[Int(I[j])])] += sed[Int(I[j])]
+                end
+            end
+            data.u2[:,:,i] = sed
+
+        end
     end
-    model = nothing
+    println("here")
+    return data,model;
+end
+end
 
-    return ero
-end
-end

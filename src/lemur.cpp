@@ -644,7 +644,7 @@ void lemur::reset()
 
     if (usefd==false)
     {
-        std::fill(stackij.begin(),stackij.end(),0);
+        stackij.clear();
     }
     std::fill(accgrid.begin(),accgrid.end(),0);
    
@@ -655,17 +655,13 @@ void lemur::reset()
 
     std::fill(ero.begin(),ero.end(),0.0);
 #pragma omp parallel for
-    for (int i=1;i<BC.size();i++)
+    for (int i=0;i<BC.size();i++)
     {
         
         BCX[BC[i]]=1;
     }
 
-    for (int i=1;i<=BC.size();i++)
-    {
-        // std::cout<<i<<" ";
-        BCX[BC[i]]=1;
-    }
+  
     
     
     
@@ -1739,10 +1735,13 @@ void lemur::lakefill()
     checkparams();
     if (uselandsed>0)
     {
-        //if (firstcall==1)
+       // if (firstcall==1)
       //  {landsurf=Z;}
         landsurf=Z;
-       // reset();
+        if (firstcall ==0)
+        {
+         reset();
+        }
          findsteepest();
             
 

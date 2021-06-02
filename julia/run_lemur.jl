@@ -68,17 +68,10 @@ mutable struct lemur_obj
         obj.kd = 1.0
         obj.ks = 0
         obj.dt = 1e6
-<<<<<<< HEAD
         obj.t = 3e6
         obj.undercapacity = zeros(Int(obj.ny), Int(obj.nx)) 
         obj.k_sed = obj.k
         obj.flex = 20e3
-=======
-        obj.t = 200e6
-        obj.undercapacity = zeros(Int(obj.ny), Int(obj.nx)) 
-        obj.k_sed = obj.k
-        obj.flex = 30e3
->>>>>>> Andes
         obj.dx = 1000
         obj.dy = 1000
         obj.m = .5
@@ -194,33 +187,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
     data.u2 = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.chi = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
 
-<<<<<<< HEAD
-    for t = 0:lemur_params.dt:lemur_params.t    
-        @cxx model -> erosion_fluvial()
-        z =  copy(get_lemur(model, "z", lemur_params.ny, lemur_params.nx))
-        z[lemur_params.bcx .== 1] .= 0
-        ero .= copy(zi .- z)
-        zi .= z
-
-        z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0]
-        u = IsoFlex.flexural(ero,dx=lemur_params.dx,dy=lemur_params.dy,Te=lemur_params.flex,buffer=200)
-
-       # u = IsoFlex.flexural(ero,dx=lemur_params.dx,dt=lemur_params.dt, tt = lemur_params.t, t = t,
-       # dy=lemur_params.dy,Te=lemur_params.flex,buffer=200)
-        
-        z[lemur_params.bcx .== 0] .+= u[lemur_params.bcx .== 0]
-
-        set_lemur(model,"z", vec(z))
-        @cxx model -> lakefill()
-        
-        subplots(figsize=[5,5])
-        imshow(z,cmap = "RdYlBu_r")
-        colorbar()
-        println("1")
-    end
-    model = nothing
-=======
-        for t = 0:lemur_params.dt:lemur_params.t
+    for t = 0:lemur_params.dt:lemur_params.t
         t2 = @time begin
             @cxx model -> erosion_fluvial()
 
@@ -228,7 +195,6 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             z[lemur_params.bcx .== 1] .= 0
             ero .= copy(zi .- z)
             zi .= z
->>>>>>> Andes
 
 
             z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0]

@@ -47,10 +47,10 @@ mutable struct lemur_obj
         obj.udt = 100000
         obj.deposit = false
         bc = zeros(Int(obj.ny), Int(obj.nx))
-        bc[:, 1] .= 0
-        bc[:, end] .= 0
+        bc[:, 1] .= 1
+        bc[:, end] .= 1
         bc[1, :] .= 1
-        bc[end, :] .= 0
+        bc[end, :] .= 1
         obj.bcx = zeros(Int(obj.ny),Int(obj.nx))
         obj.bcx[:] .= bc[:]
         obj.z[bc .== 1] .= 0
@@ -77,7 +77,7 @@ mutable struct lemur_obj
         obj.m = .5
         obj.t_c = 100e6
         obj.n = 1
-        obj.u = zeros(Int(obj.ny), Int(obj.nx)) .+ .000000000000001
+        obj.u = zeros(Int(obj.ny), Int(obj.nx)) .+ .00000000000000
         return obj
     end
     lemur_obj()
@@ -151,14 +151,14 @@ mutable struct datas
     u::Array{Float64,3}
     z::Array{Float64,3}
     u2::Array{Float64,3}
-
+    chi::Array{Float64,3}
     function datas()
         obj = new()
     end
     datas()
 
 end
-function run(lemur_params; compute_sedflux = false)
+function run(lemur_params; compute_sedflux = false, calc_chi = true)
     model = @cxxnew lemur(lemur_params.ny, lemur_params.nx)
 
     for nm = fieldnames(typeof(lemur_params))
@@ -185,6 +185,7 @@ function run(lemur_params; compute_sedflux = false)
     data.z = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.u = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.u2 = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
+    data.chi = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
 
         for t = 0:lemur_params.dt:lemur_params.t
         t2 = @time begin
@@ -197,12 +198,15 @@ function run(lemur_params; compute_sedflux = false)
 
 
             z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0]
-           # u = IsoFlex.flexural(ero,dx=lemur_params.dx,dy=lemur_params.dy,Te=lemur_params.flex,buffer=200)
-            u,u2=IsoFlex.viscoelastic_lithos(ero; dx=lemur_params.dx,dt=lemur_params.dt, tt = lemur_params.t, t = t,
-            dy=lemur_params.dy,Te=lemur_params.flex,buffer = 200, t_c = lemur_params.t_c)
+            if lemur_params.t_c == 0
+                u = IsoFlex.flexural(ero,dx=lemur_params.dx,dy=lemur_params.dy,Te=lemur_params.flex,buffer=200)
+            else
+                u,u2=IsoFlex.viscoelastic_lithos(ero; dx=lemur_params.dx,dt=lemur_params.dt, tt = lemur_params.t, t = t,
+                    dy=lemur_params.dy,Te=lemur_params.flex,buffer = 200, t_c = lemur_params.t_c)
+            end
             #u2 = u;
-            z[lemur_params.bcx .== 0] .+= u[lemur_params.bcx .== 0]
-
+            #z[lemur_params.bcx .== 0] .+= u[lemur_params.bcx .== 0]
+            z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0]
             set_lemur(model,"z", vec(z))
             @cxx model -> lakefill()
         end
@@ -210,8 +214,25 @@ function run(lemur_params; compute_sedflux = false)
         println(i)
         data.z[:,:,i] = z;
         data.u[:,:,i] = u;
-        data.u2[:,:,i] = u2;
-        
+        if lemur_params.t_c > 0
+            data.u2[:,:,i] = u2;
+        end
+        if (calc_chi == true)
+            chi =  zeros(Int(lemur_params.ny), Int(lemur_params.nx)) 
+            I = get_lemur(model, "stack", lemur_params.ny, lemur_params.nx)
+            R = get_lemur(model, "rec", lemur_params.ny, lemur_params.nx)
+            acc = get_lemur(model,"acc", lemur_params.ny, lemur_params.nx)
+            chi[:,:] .= 1 ./ acc[:,:]
+            println(I[end])
+
+            for j =1:length(I)
+                if I[j]!=R[j]
+                    chi[Int(I[j])] += chi[Int(R[Int(I[j])])]
+                end
+            end
+            chi[acc .< 10] .= 0
+            data.chi[:,:,i] .= chi[:,:];
+        end
         if compute_sedflux
             sed = copy(ero)
             I = get_lemur(model, "stack", lemur_params.ny, lemur_params.nx)
@@ -223,6 +244,7 @@ function run(lemur_params; compute_sedflux = false)
                     sed[Int(R[Int(I[j])])] += sed[Int(I[j])]
                 end
             end
+            
             data.u2[:,:,i] = sed
 
         end

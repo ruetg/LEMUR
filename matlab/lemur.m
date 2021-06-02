@@ -105,6 +105,7 @@ km=ki;
 ksedm = k_sed;
 tsed=0;
 for t = 0:dt:tt-dt
+    tic()
     if t>tt/2
         lemur_mex('set','precip',precip*2);
                 lemur_mex('set','evaprate',evaprate/2);
@@ -195,7 +196,7 @@ wt=1;
     lemur_mex('set','ero',ero(:));
     lemur_mex('set','z',Z(:));
     tero = ero + tero;
-    
+    toc()
     %Diffusion presently only supports square cells
     if numel(U)>1
         U = imresize(U,size(ero));

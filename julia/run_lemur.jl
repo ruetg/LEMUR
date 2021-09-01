@@ -116,7 +116,7 @@ end
 
 module run_lemur
 
-using Plots
+#using Plots
 using Cxx
 using Libdl
 include("/Users/gr_1/Documents/IsoFlex/IsoFlex.jl")
@@ -191,7 +191,6 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
     set_lemur(model,"z", vec(z))
     @cxx model -> lakefill()
     z = copy(get_lemur(model, "z", lemur_params.ny, lemur_params.nx))
-
     zi[:] .= z[:]
     sedflux = nothing 
     data = datas()
@@ -200,7 +199,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
     data.u2 = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.chi = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.a = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
-    
+    data.z[:,:,1] = copy(z)
     
     for t = 0:lemur_params.dt:lemur_params.t
         t2 = @time begin
@@ -228,7 +227,6 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
 
             set_lemur(model,"z", vec(z))
             
-
             @cxx model -> lakefill()
         end
 

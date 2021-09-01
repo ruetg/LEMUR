@@ -377,7 +377,7 @@ void lemur::findsteepest()
             
         }
     }
-    std::cout<<nsink<<std::endl;
+    //std::cout<<nsink<<std::endl;
     //mexPrintf("%d\n",nsink);
 }
 
@@ -982,12 +982,18 @@ if (firstcall == 0)
     {
         Z[i] += watertot[i];
     }
+
     if (!usefd)
     {
         findsteepest();
+
         getdonors();
+        std::cout<<std::endl<<"i"<<ks<<std::endl;
+
         createstack2();
+
     }
+
     getacc();
         runoff=accgrid;
 
@@ -995,7 +1001,9 @@ if (firstcall == 0)
     {
         Z[i]-=watertot[i];
     }
+
     erode();
+
     if (ks>1e-100)
     {
         fillls();
@@ -1116,7 +1124,7 @@ std::vector<double> lemur::get(std::string nm)
 
     else if (nm.compare("k")==0)
     {
-        std::cout<<kval[2];
+//std::cout<<kval[2];
         for (int i=1;i<nn+1;i++)
         {
             val[i-1]=kval[i];
@@ -1501,6 +1509,7 @@ void lemur::landsed()
             nsink++;
         }
     }
+    std::cout<<"here1x"<<std::endl;
 
     for (int i = 1;i <= nn;i++)
     {
@@ -1555,7 +1564,10 @@ void lemur::landsed()
             }
             
         }
+
     }
+    std::cout<<"here2x"<< std::endl;
+
     if (maxareasinkfill>=0)
     {
         for (int i=1;i<nn+1;i++)
@@ -1695,6 +1707,7 @@ void lemur::checkparams()
 
 void lemur::lakefill()
 {
+    std::cout<<"111"<<std::endl;
     checkparams();
     if (uselandsed>0)
     {
@@ -1988,7 +2001,8 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
         std::cout<<"maxr="<<r<<std::endl;
         
     }
-    
+
+
     //Number of points within circle
     int tic= ic[ri];
     

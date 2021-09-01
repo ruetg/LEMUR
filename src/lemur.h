@@ -183,17 +183,3 @@ private:
     
 };
 #endif
-
-
-
-// Change number numbering system of rivers
-// Look over esurf
-// Quantitative metrics when describing correlations/durations - tea leaves, discussion
-// Cumulative effect on eroded sediment
-// Other rivers - not s1 - s12, unaffected by landslides (control rivers)
-// Same 12 rivers, show it is a localized effect - spatially (comparison to rivers hit hard by ls vs 
-// those that weren't 
-// flood distribution 
-// comparison of different methods
-// how long do effects last
-// a and b before morakot - stable mean before / after (?) 

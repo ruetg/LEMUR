@@ -1,5 +1,5 @@
-export set_param
 
+export set_param
 mutable struct lemur_obj
     k::Array{Float64,2}
     undercapacity::Array{Float64,2}
@@ -34,8 +34,11 @@ mutable struct lemur_obj
     evaprate::Float64
     bcx::Array{Float64,2}
     k_sed::Array{Float64,2}
-
+    ufunc::Function
     function lemur_obj()
+        function tempfunc(t)
+            return nothing
+        end
         obj = new()
         obj.uselandsed = 0;
         obj.sinkfill = 1;
@@ -58,8 +61,9 @@ mutable struct lemur_obj
         obj.srho = 2400
         obj.udt = 1e5
         obj.bc = float(findall(bc .== 1))
-        obj.k = zeros(Int(obj.ny),Int(obj.nx)) .+ 4e-7
-
+        obj.k = zeros(Int(obj.ny),Int(obj.nx)) .+ 1e-6
+        
+        obj.ufunc = tempfunc 
         obj.firstcall = 1
         obj.l = 1
         obj.evaprate = 1e-30
@@ -143,33 +147,42 @@ function get_lemur(maker, nm, ny, nx)
     y = @cxx maker -> get(pointer(nm))
     z = unsafe_wrap(Array,pointer(y),Int(ny*nx))
     z = reshape(z,Int(ny),Int(nx))
+    
     return z
     
 end
+
 
 mutable struct datas
     u::Array{Float64,3}
     z::Array{Float64,3}
     u2::Array{Float64,3}
     chi::Array{Float64,3}
+    a::Array{Float64,3}
     function datas()
         obj = new()
     end
     datas()
 
 end
+using Statistics
+
 function run(lemur_params; compute_sedflux = false, calc_chi = true)
     model = @cxxnew lemur(lemur_params.ny, lemur_params.nx)
 
     for nm = fieldnames(typeof(lemur_params))
-        print(string(nm,' '))
-        if length(getfield(lemur_params,nm)) <= 1
-            println(getfield(lemur_params,nm))
-        end
-        set_lemur(model, string(nm), getfield(lemur_params,nm))
-    end
-    
+        if (typeof(getfield(lemur_params,nm)) == Float64) || (typeof(getfield(lemur_params,nm)) == Array{Float64,1}) || (typeof(getfield(lemur_params,nm)) == Array{Float64,2})
+            print(string(nm,' '))
 
+            if length(getfield(lemur_params,nm)) <= 1
+                println(getfield(lemur_params,nm))
+            end
+            set_lemur(model, string(nm), getfield(lemur_params,nm))
+        end
+    end
+        
+    
+    print(lemur_params.k[1])
     z = get_lemur(model, "z", lemur_params.ny, lemur_params.nx)
     zi = zeros(size(z))
     flex = zeros(size(z))
@@ -186,7 +199,9 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
     data.u = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.u2 = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.chi = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
-
+    data.a = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
+    
+    
     for t = 0:lemur_params.dt:lemur_params.t
         t2 = @time begin
             @cxx model -> erosion_fluvial()
@@ -194,6 +209,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             z =  copy(get_lemur(model, "z", lemur_params.ny, lemur_params.nx))
             z[lemur_params.bcx .== 1] .= 0
             ero .= copy(zi .- z)
+            println(mean(vec(ero)))
             zi .= z
 
 
@@ -202,18 +218,28 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
                 u = IsoFlex.flexural(ero,dx=lemur_params.dx,dy=lemur_params.dy,Te=lemur_params.flex,buffer=200)
             else
                 u,u2=IsoFlex.viscoelastic_lithos(ero; dx=lemur_params.dx,dt=lemur_params.dt, tt = lemur_params.t, t = t,
-                    dy=lemur_params.dy,Te=lemur_params.flex,buffer = 200, t_c = lemur_params.t_c)
+                dy=lemur_params.dy,Te=lemur_params.flex,buffer = 200, t_c = lemur_params.t_c)
             end
             #u2 = u;
-            #z[lemur_params.bcx .== 0] .+= u[lemur_params.bcx .== 0]
-            z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0]
+            z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0] *lemur_params.dt
+            if !isnothing(lemur_params.ufunc(0))
+                z .+= lemur_params.ufunc(t) * lemur_params.dt
+            end
+
             set_lemur(model,"z", vec(z))
+            
+
             @cxx model -> lakefill()
         end
+
         i = floor(Int16,t/lemur_params.dt+1)
-        println(i)
+
+        
         data.z[:,:,i] = z;
         data.u[:,:,i] = u;
+        acc = get_lemur(model,"acc", lemur_params.ny, lemur_params.nx)
+        data.a[:,:,i] = acc
+            
         if lemur_params.t_c > 0
             data.u2[:,:,i] = u2;
         end
@@ -221,16 +247,15 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             chi =  zeros(Int(lemur_params.ny), Int(lemur_params.nx)) 
             I = get_lemur(model, "stack", lemur_params.ny, lemur_params.nx)
             R = get_lemur(model, "rec", lemur_params.ny, lemur_params.nx)
-            acc = get_lemur(model,"acc", lemur_params.ny, lemur_params.nx)
-            chi[:,:] .= 1 ./ acc[:,:]
             println(I[end])
 
             for j =1:length(I)
                 if I[j]!=R[j]
-                    chi[Int(I[j])] += chi[Int(R[Int(I[j])])]
+                    chi[Int(I[j])] = 1/acc[Int(I[j])] + chi[Int(R[Int(I[j])])]
                 end
             end
-            chi[acc .< 10] .= 0
+            chi[acc .< 0] .= NaN
+            
             data.chi[:,:,i] .= chi[:,:];
         end
         if compute_sedflux

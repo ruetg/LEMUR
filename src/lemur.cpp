@@ -1,11 +1,9 @@
 #include <string>
 #include <fstream>
 #include<cmath>
-#include <stdio.h>
 #include<sstream>
 #include "lemur.h"
-#include<stdexcept>
-#include <algorithm>
+
 //#include <omp.h>
 
 
@@ -87,6 +85,7 @@ lemur::lemur(int i, int j)
 
 void lemur::set(std::string nm,double val)
 {
+
     if (nm.compare("firstcall")==0)
     {
         firstcall=val;
@@ -284,11 +283,9 @@ void lemur::findsteepest()
     double slpxmym;
     double slpxpym;
     double slpxmyp;
-    double slpi = 1;
+    double slpi;
     double diag = std::pow(std::pow((double)dx,2.0)+std::pow((double)dy,2.0),.5);
     double maxslp;
-    int redo=1;
-    int nredo=0;
     int nsink=0;
     test.resize(nn+1);
 #pragma omp simd
@@ -326,51 +323,51 @@ void lemur::findsteepest()
                 maxslp = slpyp;
                 slpi = 1;
                 dists[ij] = dy;
-            };
+            }
             
             if (slpym>maxslp)
             {
                 maxslp = slpym;
                 slpi = -1;
                 dists[ij]=dy;
-            };
+            }
             if(slpxp>maxslp)
                 
             {maxslp = slpxp;
              slpi = ny;
              dists[ij]=dx;
-            };
+            }
             if (slpxm>maxslp)
             {
                 maxslp = slpxm;
                 slpi = -ny;
                 dists[ij]=dx;
-            };
+            }
             if (slpxpyp>maxslp)
             {
                 maxslp = slpxpyp;
                 slpi = ny+1;
                 dists[ij]=diag;
-            };
+            }
             if (slpxpym>maxslp)
             {
                 maxslp = slpxpym;
                 slpi = ny-1;
                 dists[ij]=diag;
-            };
+            }
             if(slpxmyp>maxslp)
             {
                 maxslp = slpxmyp;
                 slpi = -ny+1;
                 dists[ij]=diag;
-            };
+            }
             if(slpxmym>maxslp)
             {
                 maxslp = slpxmym;
                 slpi = -ny-1;
                 dists[ij]=diag;
                 
-            };
+            }
             if (maxslp==0)
             {
                 nsink++;
@@ -378,11 +375,11 @@ void lemur::findsteepest()
             
             slpis[ij] = slpi+ij;
             
-        };
-    };
+        }
+    }
     std::cout<<nsink<<std::endl;
     //mexPrintf("%d\n",nsink);
-};
+}
 
 void lemur::getdonors()
 {
@@ -395,7 +392,7 @@ void lemur::getdonors()
             donors[slpis[ij]][ndons[slpis[ij]]]=ij;
         }
     }
-};
+}
 
 void lemur::createstack()
 {
@@ -413,24 +410,21 @@ void lemur::createstack()
 #pragma omp parallel for schedule(dynamic)
     for (int i=1;i<olist.size();i++)
     {
-        int d=1;
+        int d;
         int p=1;
-        int ndon=0;
         int ij=olist[i];
         
-        //mexPrintf("%d\n",olist[i]);
-        
+
         stackij[i].push_back(ij);
         p++;
-        ndon++;
-        
+
         for (int ik=1;ik<=ndons[ij];ik++)
         {
             numiter=0;
             d = donors[ij][ik];
             p = recursivestack(d,p,i);
-        };
-    };
+        }
+    }
     olength.resize(olist.size());
 #pragma omp parallel for
     for (int i=1;i<olist.size();i++)
@@ -452,7 +446,7 @@ void lemur::createstack()
         }
     }
     // mexPrintf("%d\n",stack[0]);
-};
+}
 int lemur::recursivestack(int r,int p,int i)
 {
     
@@ -475,7 +469,7 @@ int lemur::recursivestack(int r,int p,int i)
         return 1;
     }
     
-};
+}
 void lemur::createstack2()
 {
     olist.resize(1);
@@ -494,13 +488,11 @@ void lemur::createstack2()
 #pragma omp parallel for schedule(dynamic)
     for (int i=1;i<olist.size();i++)
     {
-        int d=1;
-        int p=1;
+        int d;
         int ndon=0;
         int ij=olist[i];
         
-        //mexPrintf("%d\n",olist[i]);
-        
+
         stackij[i].push_back(ij);
         
         for (int u=0;u<=ndon;u++)
@@ -514,9 +506,9 @@ void lemur::createstack2()
                 d = donors[ij][ik];
                 stackij[i].push_back(d);
                 
-            };
-        };
-    };
+            }
+        }
+    }
     olength.resize(olist.size());
 #pragma omp parallel for
     for (int i=1;i<olist.size();i++)
@@ -536,7 +528,7 @@ void lemur::createstack2()
         }
     }
     // mexPrintf("%d\n",stack[0]);
-};
+}
 
 void lemur::getacc()
 {
@@ -546,7 +538,6 @@ void lemur::getacc()
     {
         accgrid[i]=1.0;
     }
-    int cc;
 #pragma omp parallel for
     for (int j=1;j<nnn;j++)
     {
@@ -563,19 +554,16 @@ void lemur::getacc()
 void lemur::erode()
 {
     double f;
-    double fs=0;
-    
+
     double x;
-    int ni=1,ni2=1;
+    int ni=1;
     if (n_>1)
     {
         ni=1;
-        ni2=5;
     }
     if (n_<1)
     {
         ni=1;
-        ni2=5;
     }
     double f2=0;
     std::vector<double> Zi;
@@ -642,7 +630,7 @@ void lemur::reset()
 
 {
 
-    if (usefd==false)
+    if ( !usefd )
     {
         stackij.clear();
     }
@@ -694,14 +682,13 @@ void lemur::fillls()
     std::vector<double> cero=ero;
     std::vector<double> Zn=Z;
     double Lt;
-    double ssum=0;int nj=0;double sedsum;
+    double ssum=0;double sedsum;
     double dti=dt;
     double A2;
     double di;
     double f;
     double d2;
-    std::vector<double> Zi=Z;
-    
+
     if (stackij.size()>0)
     {
         
@@ -712,8 +699,7 @@ void lemur::fillls()
             
             double erol;
             
-            double lsum;
-            lsum=1;
+
             int y;
             int eroli=1;
             int dts=1;
@@ -726,10 +712,7 @@ void lemur::fillls()
             {
                 y=1;
                 nt1++;
-                
-                
                 sedsum=1.00000001e-3;
-                
                 while (sedsum>1e-3)
                 {
                     if (y==50)
@@ -746,16 +729,9 @@ void lemur::fillls()
                     if (y2>5000)
                     {
                         break;
-                        std::cout<<"Not Converging";
                     }
-                    
-                    
-                    lsum=sedsum;
-                    
                     sedsum=0;
-                    
                     y++;
-                    
                     for (int i=olength[j]-1;i>=0;i--)
                     {
                         Zn[stackij[j][i]]=Z[stackij[j][i]];
@@ -826,7 +802,7 @@ void lemur::fillls()
                             Zn[stackij[j][i]]=tl;
                             
                             if (sedsum<std::abs(erol-ero[stackij[j][i]]))
-                            {sedsum=std::abs(erol-ero[stackij[j][i]]);eroli=i;}
+                            {sedsum=std::abs(erol-ero[stackij[j][i]]);}
                             
                         }
                         
@@ -860,17 +836,18 @@ void lemur::fillls()
 
 void lemur::fillls2()
 {
+    /**
+     *
+     */
     std::vector<double> cero=ero;
     std::vector<double> Zn=Z;
     
-    double ssum=0;int nj=0;double sedsum;
+    double ssum=0;double sedsum;
     double dti=dt;
     
     if (stackij.size()>0)
     {
-        int dts=1;
-        
-        dts=200;
+        int dts=200;
         dt/=200;
         int no=1;
         std::vector<double> cerol;
@@ -881,11 +858,7 @@ void lemur::fillls2()
         {
             double erol;
             
-            double lsum;
-            lsum=1;
             int y;
-            int eroli=1;
-            int y2=1;
             
             int nt1=1;
             
@@ -901,8 +874,7 @@ void lemur::fillls2()
                 {
                     
                     
-                    lsum=sedsum;
-                    
+
                     sedsum=0;
                     
                     y++;
@@ -948,7 +920,7 @@ void lemur::fillls2()
                             
                             
                             if (sedsum<std::abs(erol-ero[stackij[j][i]]))
-                            {sedsum=std::abs(erol-ero[stackij[j][i]]);eroli=i;}
+                            {sedsum=std::abs(erol-ero[stackij[j][i]]);}
                         }
                         
                         
@@ -1006,21 +978,15 @@ if (firstcall == 0)
 {reset();
 }
         
-   // Z=landsurf;
     for (int i=1;i<=nn;i++)
     {
         Z[i] += watertot[i];
     }
-    if (usefd==false)
+    if (!usefd)
     {
-     
         findsteepest();
-            
-
         getdonors();
-            
         createstack2();
-        
     }
     getacc();
         runoff=accgrid;
@@ -1078,7 +1044,7 @@ if (firstcall == 0)
 void lemur::erosion_fluvial2()
 {
     reset();
-    if (usefd==false)
+    if (!usefd)
     {
         findsteepest();
 
@@ -1353,7 +1319,7 @@ void lemur::lakefill2()
     
     for (int i=1;i<=ny;i++)
     {
-        if (closed[i]==false)
+        if (!closed[i])
         {
             closed[i]=true;
             
@@ -1365,7 +1331,7 @@ void lemur::lakefill2()
     }
     for (int i=nn-ny+1;i<=nn;i++)
     {
-        if (closed[i]==false)
+        if (!closed[i])
         {
             closed[i]=true;
             
@@ -1376,7 +1342,7 @@ void lemur::lakefill2()
     }
     for (int i=ny;i<=nn;i+=ny)
     {
-        if (closed[i]==false)
+        if (!closed[i])
         {
             closed[i]=true;
             
@@ -1387,7 +1353,7 @@ void lemur::lakefill2()
     }
     for (int i=ny+1;i<=nn;i+=ny)
     {
-        if (closed[i]==false)
+        if (!closed[i])
         {
             closed[i]=true;
             
@@ -1397,11 +1363,9 @@ void lemur::lakefill2()
         }
     }
     int s;
-    int si=1;
     int ij;
     int ii;
     int jj;
-    int ci=1;
     pittop=-9999;
     while (c>0||p>0)
     {
@@ -1440,7 +1404,7 @@ void lemur::lakefill2()
             
             ii= (ij-1)%ny+1;
             jj = (int)((ij-1)/ny)+1;
-            if ((ii>=1)&&(jj>=1)&&(ii<=ny)&&(jj<=nx)&&closed[ij]==false)//)
+            if ((ii>=1)&&(jj>=1)&&(ii<=ny)&&(jj<=nx) && !closed[ij])
             {
                 
                 closed[ij]=true;
@@ -1448,7 +1412,7 @@ void lemur::lakefill2()
                 if (Z[ij]<=Z[s])
                 {
                     
-                    Z[ij]=Z[s]+1e-5;
+                    Z[ij]=Z[s]+1e-10;
                     
                     pit[p]=ij;
                     p++;
@@ -1475,9 +1439,9 @@ void lemur::landsed()
     std::fill(watertot.begin(),watertot.end(),0.0);
 
     sed = ero;
-    double addprecip = 0;
-    double fact2 = 0;
-                            double fact;
+    double addprecip;
+    double fact2;
+    double fact;
 
     if (sed.size()<nn){sed.resize(nn+1);}
     std::vector<double> sedsub;
@@ -1487,7 +1451,7 @@ void lemur::landsed()
     sedlist.resize(nn+1);
     std::fill(usedr.begin(),usedr.end(),false);
 
-    double tsed=0;double tsed2=0;
+    double tsed=0;
     for (int i=1;i<=ny;i++)
     {
         usedr[i]=true;
@@ -1538,9 +1502,9 @@ void lemur::landsed()
         }
     }
 
-    for (int i =1;i<=nn;i++)
+    for (int i = 1;i <= nn;i++)
     {
-        if( (landsurf[i]<Z[i])&&(usedr[i])==false)
+        if( (landsurf[i] < Z[i]) && !(usedr[i]) )
         {
 
             nseds=0;
@@ -1572,7 +1536,7 @@ void lemur::landsed()
             }
             
 
-            double addsed=0;
+            double addsed;
             for (int j=1;j<=nseds;j++)
             {
                 if (sedlist[j]>nn||sedlist[j]<0)
@@ -1585,7 +1549,7 @@ void lemur::landsed()
                 addprecip = (Z[sedlist[j]]-(landsurf[sedlist[j]]))*fact2;
                 
                 //landsurf[sedlist[j]] += addprecip;
-                watertot[sedlist[j]]+=addprecip;
+                watertot[sedlist[j]] += addprecip;
                 sinkareas[sedlist[j]] = area;
                 
             }
@@ -1620,11 +1584,10 @@ void lemur::recursivesed(int ij)
         for (int i=0;i<8;i++)
         {
             
-            if( (landsurf[idx[i]+ij]<Z[idx[i]+ij] )&&(usedr[idx[i]+ij]==false))
+            if( ( landsurf[idx[i]+ij]<Z[idx[i]+ij] ) && (!usedr[idx[i]+ij]) )
             {
                 next[c]=idx[i]+ij;
                 usedr[ij+idx[i]]=true;
-                //recursivesed(ij);
                 c++;
             }
             
@@ -1764,7 +1727,7 @@ void lemur::lakefill()
 void lemur::deposit()
 {
     double sumsedij=0;
-    std::vector<double> d,dsi;
+    std::vector<double> dsi;
     int ij;
     double sumer=0;
     //compute sediment using stack and erosion
@@ -1784,7 +1747,6 @@ void lemur::deposit()
     int cat=2;
     std::vector<bool> ends;
     ends.resize(nn+1);
-    std::vector<double> circsurf;
     std::vector<double> seds;
     
     
@@ -1812,7 +1774,6 @@ void lemur::deposit()
         }
     }
     int rs;
-    double lastsed=1e10;
     std::cout<<"nx= "<< nx << std::endl;
     std::cout<<"ny= "<< ny << std::endl;
     for (int i=1;i<=ny;i++)
@@ -1827,7 +1788,6 @@ void lemur::deposit()
                 test[ij]=1;
                 double extrased=1;
                 int rsii=rsi;
-                double bslvl=0;
                 ri=0;
                 while (extrased>0)
                 {
@@ -1880,7 +1840,7 @@ void lemur::deposit()
                             {
                                 sedx=sed.at(ij)/sumseds*seds.at(l);
                                 Z.at(zni.at(l))=Z[zni[l]]+sedx;
-                                sumsedij+=sed[ij]/sumseds*sedx;;
+                                sumsedij+=sed[ij]/sumseds*sedx;
                                 
                             }
                         }
@@ -1917,8 +1877,7 @@ void lemur::deposit()
                         
                         break;
                     }
-                    lastsed=extrased;
-                    
+
                 }
                 
                 
@@ -1938,7 +1897,6 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
 {
     double I1;
     
-    int id = (int)(r/rsi);
     //if geometry of given radius has not previously been solved for...
     
     if (ri>maxr)
@@ -2038,10 +1996,10 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
     int tic2=ic2[ri];
     
     
-    bool xsi=false;
-    bool xsi2=false;
-    bool ysi=false;
-    bool ysi2=false;
+    bool xsi;
+    bool xsi2;
+    bool ysi;
+    bool ysi2;
     
     
     
@@ -2060,8 +2018,8 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
     }
     
     
-    bool nidxy=false;
-    bool nidxx=false;
+    bool nidxy;
+    bool nidxx;
     
     //Edge correct - don't use values which go out of bounds of the grid
     for (int i=1;i<tic2;i++)
@@ -2084,7 +2042,7 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
         }
     }
     
-    int c=1;
+
     for (int i=1;i<tic;i++)
     {
         ysi=false;
@@ -2160,7 +2118,6 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
         }
         
     }
-    c=1;
     
     //Calculate linear indices of cone
     for(int i=1;i<tic;i++)
@@ -2178,11 +2135,9 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
 }
 void lemur::rangesearch(int r,int ri)
 {
-    double I1,I2;
-    
+
     int idx1=1;
     int idx2=1;
-    int ij;
     double x=(double)(mres/2.0);
     double y=(double)(mres/2.0);
     double r2=(double)r;

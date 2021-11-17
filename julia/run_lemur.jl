@@ -100,16 +100,13 @@ function set_param(obj::lemur_obj, nm::AbstractString, val::Any)
         println("Warn: inconsistent size in undercapacity")
     end
     if all(size(obj.k) .!= size(val))
-        println("Warn: inconsistent size in undercapacity")
-    end
-    if all(size(obj.k) .!= size(val))
         println("Warn: inconsistent size in k")
     end
     if all(size(obj.bcx) .!= size(val))
         println("Warn: inconsistent size in bc")
     end
     if all(size(obj.z) .!= size(val))
-        println("Warn: inconsistent size in bc")
+        println("Warn: inconsistent size in z")
     end
     return obj
 end
@@ -138,7 +135,6 @@ end
 
 
 function set_lemur(maker, nm, var::Float64)
-    print("here2")
     x = convert(cxxt"double",var);
     @cxx maker -> set(pointer(nm), x)
 end
@@ -159,6 +155,10 @@ mutable struct datas
     u2::Array{Float64,3}
     chi::Array{Float64,3}
     a::Array{Float64,3}
+    R::Array{Float64,3}
+    csed::Array{Float64,3}
+    cw::Array{Float64,3}
+
     function datas()
         obj = new()
     end
@@ -166,6 +166,17 @@ mutable struct datas
 
 end
 using Statistics
+
+
+function getstrm(Z,R,ij)
+    r = Int(ij)
+    prof = zeros(0)
+    while R[r] != r
+        append!(prof, r)
+        r = Int(R[r])
+    end
+    return prof
+end
 
 function run(lemur_params; compute_sedflux = false, calc_chi = true)
     model = @cxxnew lemur(lemur_params.ny, lemur_params.nx)
@@ -182,7 +193,6 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
     end
         
     
-    print(lemur_params.k[1])
     z = get_lemur(model, "z", lemur_params.ny, lemur_params.nx)
     zi = zeros(size(z))
     flex = zeros(size(z))
@@ -200,34 +210,44 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
     data.chi = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.a = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.z[:,:,1] = copy(z)
-    
+    data.R = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
+    csed = zeros(size(z))
+    cw = zeros(size(z))
+    profile = []
     for t = 0:lemur_params.dt:lemur_params.t
         t2 = @time begin
-            @cxx model -> erosion_fluvial()
+            set_lemur(model,"firstcall",0.0)
 
+            @cxx model -> erosion_fluvial()
+            @cxx model -> diffuse()
             z =  copy(get_lemur(model, "z", lemur_params.ny, lemur_params.nx))
+            
             z[lemur_params.bcx .== 1] .= 0
             ero .= copy(zi .- z)
-            println(mean(vec(ero)))
             zi .= z
-
 
             z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0]
             if lemur_params.t_c == 0
-                u = IsoFlex.flexural(ero,dx=lemur_params.dx,dy=lemur_params.dy,Te=lemur_params.flex,buffer=200)
+                u = IsoFlex.flexural(ero,dx=lemur_params.dx, dy=lemur_params.dy, Te = lemur_params.flex, buffer=200)
             else
                 u,u2=IsoFlex.viscoelastic_lithos(ero; dx=lemur_params.dx,dt=lemur_params.dt, tt = lemur_params.t, t = t,
                 dy=lemur_params.dy,Te=lemur_params.flex,buffer = 200, t_c = lemur_params.t_c)
             end
             #u2 = u;
-            z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0] *lemur_params.dt
+            z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0] * lemur_params.dt
+            
             if !isnothing(lemur_params.ufunc(0))
                 z .+= lemur_params.ufunc(t) * lemur_params.dt
             end
 
             set_lemur(model,"z", vec(z))
             
+            acc = get_lemur(model,"acc", lemur_params.ny, lemur_params.nx)
+
             @cxx model -> lakefill()
+            
+            set_lemur(model,"firstcall",0.0)
+
         end
 
         i = floor(Int16,t/lemur_params.dt+1)
@@ -235,7 +255,6 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
         
         data.z[:,:,i] = z;
         data.u[:,:,i] = u;
-        acc = get_lemur(model,"acc", lemur_params.ny, lemur_params.nx)
         data.a[:,:,i] = acc
             
         if lemur_params.t_c > 0
@@ -245,7 +264,6 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             chi =  zeros(Int(lemur_params.ny), Int(lemur_params.nx)) 
             I = get_lemur(model, "stack", lemur_params.ny, lemur_params.nx)
             R = get_lemur(model, "rec", lemur_params.ny, lemur_params.nx)
-            println(I[end])
 
             for j =1:length(I)
                 if I[j]!=R[j]
@@ -255,12 +273,12 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             chi[acc .< 0] .= NaN
             
             data.chi[:,:,i] .= chi[:,:];
+            data.R[:,:,i] = R
         end
         if compute_sedflux
             sed = copy(ero)
             I = get_lemur(model, "stack", lemur_params.ny, lemur_params.nx)
             R = get_lemur(model, "rec", lemur_params.ny, lemur_params.nx)
-            println(I[end])
 
             for j =length(I):-1:1
                 if I[j]!=R[j]
@@ -269,11 +287,38 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             end
             
             data.u2[:,:,i] = sed
+            
 
         end
+        
+        if true
+            if t ==0
+                data.csed = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
+                data.csed[:,:,i] = ero
+                data.csed[:,:,i][data.csed[:,:,i] .< 0] .= 0
+            else
+                csed  .+= ero
+                csed[csed .< 0] .= 0
+                data.csed[:,:,i] .= csed
+            end
+             if t ==0
+                data.cw = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
+                data.cw[:,:,i] = copy(get_lemur(model,"watertot",lemur_params.ny,lemur_params.nx))
+                data.cw[:,:,i][data.cw[:,:,i] .< 0] .= 0
+            else
+                w = copy(get_lemur(model,"watertot",lemur_params.ny,lemur_params.nx))
+                data.cw[:,:,i] .= w
+            end
+            ij = 200+250*lemur_params.ny
+
+            push!(profile, getstrm(z,R,ij))
+
+        end
+        
+
+            
     end
-    println("here")
-    return data,model;
+    return data,model,profile;
 end
 end
 

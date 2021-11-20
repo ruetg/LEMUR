@@ -179,6 +179,7 @@ function getstrm(Z,R,ij)
 end
 
 function run(lemur_params; compute_sedflux = false, calc_chi = true)
+
     model = @cxxnew lemur(lemur_params.ny, lemur_params.nx)
 
     for nm = fieldnames(typeof(lemur_params))
@@ -188,18 +189,20 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             if length(getfield(lemur_params,nm)) <= 1
                 println(getfield(lemur_params,nm))
             end
+            println(nm)
             set_lemur(model, string(nm), getfield(lemur_params,nm))
         end
     end
-        
-    
+
     z = get_lemur(model, "z", lemur_params.ny, lemur_params.nx)
+
     zi = zeros(size(z))
     flex = zeros(size(z))
     ero = zeros(size(z))
     z[vec(lemur_params.bcx .== 1)] .= 0
     set_lemur(model,"z", vec(z))
     @cxx model -> lakefill()
+
     z = copy(get_lemur(model, "z", lemur_params.ny, lemur_params.nx))
     zi[:] .= z[:]
     sedflux = nothing 
@@ -220,6 +223,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
 
             @cxx model -> erosion_fluvial()
             @cxx model -> diffuse()
+
             z =  copy(get_lemur(model, "z", lemur_params.ny, lemur_params.nx))
             
             z[lemur_params.bcx .== 1] .= 0
@@ -233,6 +237,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
                 u,u2=IsoFlex.viscoelastic_lithos(ero; dx=lemur_params.dx,dt=lemur_params.dt, tt = lemur_params.t, t = t,
                 dy=lemur_params.dy,Te=lemur_params.flex,buffer = 200, t_c = lemur_params.t_c)
             end
+
             #u2 = u;
             z[lemur_params.bcx .== 0] .+= lemur_params.u[lemur_params.bcx .== 0] * lemur_params.dt
             
@@ -245,8 +250,10 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             acc = get_lemur(model,"acc", lemur_params.ny, lemur_params.nx)
 
             @cxx model -> lakefill()
-            
-            set_lemur(model,"firstcall",0.0)
+            return 0
+
+            set_lemur(model,"firstcall",Float(0.0))
+
 
         end
 
@@ -277,8 +284,8 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
         end
         if compute_sedflux
             sed = copy(ero)
-            I = get_lemur(model, "stack", lemur_params.ny, lemur_params.nx)
-            R = get_lemur(model, "rec", lemur_params.ny, lemur_params.nx)
+            I = copy(get_lemur(model, "stack", lemur_params.ny, lemur_params.nx))
+            R = copy(get_lemur(model, "rec", lemur_params.ny, lemur_params.nx))
 
             for j =length(I):-1:1
                 if I[j]!=R[j]

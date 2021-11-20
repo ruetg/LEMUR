@@ -250,9 +250,8 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             acc = get_lemur(model,"acc", lemur_params.ny, lemur_params.nx)
 
             @cxx model -> lakefill()
-            return 0
 
-            set_lemur(model,"firstcall",Float(0.0))
+            set_lemur(model,"firstcall",0.0)
 
 
         end

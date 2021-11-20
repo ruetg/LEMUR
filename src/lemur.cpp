@@ -37,9 +37,9 @@ lemur::lemur(int i, int j)
     
 
     idx.resize(8);
-    idx[0]=1;idx[1]=-1;idx[2]=ny;idx[3]=-ny;
-    idx[4]=ny+1;
-    idx[5]=ny-1;idx[6]=-ny+1;idx[7]=-ny-1;
+    idx.at(0)=1;idx.at(1)=-1;idx.at(2)=ny;idx.at(3)=-ny;
+    idx.at(4)=ny+1;
+    idx.at(5)=ny-1;idx.at(6)=-ny+1;idx.at(7)=-ny-1;
     
     sinkfill.resize(nn+1);
     std::fill(sinkfill.begin(),sinkfill.end(),1);
@@ -162,11 +162,11 @@ void lemur::set(std::string nm,double* val,int len)
         BC.resize(len+1);
         for (int i=1;i<=len;i++)
         {
-            BC[i]=val[i-1];
+            BC.at(i)=val[i-1];
         }
         for (int i=0;i<len;i++)
         {
-            BCX[val[i]]=1;
+            BCX.at(val[i])=1;
         }
         
     }
@@ -177,7 +177,7 @@ void lemur::set(std::string nm,double* val,int len)
         {
             for (int i=1;i<nn+1;i++)
             {
-                Z[i]=val[i-1];
+                Z.at(i)=val[i-1];
             }
             
         }
@@ -185,7 +185,7 @@ void lemur::set(std::string nm,double* val,int len)
         {
             for (int i=1;i<nn+1;i++)
             {
-                kval[i]=val[i-1];
+                kval.at(i)=val[i-1];
             }
             
         }
@@ -193,7 +193,7 @@ void lemur::set(std::string nm,double* val,int len)
         {
             for (int i=1;i<nn+1;i++)
             {
-                undercapacity[i]=(int)val[i-1];
+                undercapacity.at(i)=(int)val[i-1];
             }
             
         }
@@ -202,7 +202,7 @@ void lemur::set(std::string nm,double* val,int len)
         {
             for (int i=1;i<nn+1;i++)
             {
-                U[i]=val[i-1];
+                U.at(i)=val[i-1];
             }
             
         }
@@ -229,7 +229,7 @@ void lemur::set(std::string nm,std::vector<double> val)
         
         for (int i=0;i<len;i++)
         {
-            BCX[val[i]]=1;
+            BCX.at(val[i])=1;
         }
         
     }
@@ -239,7 +239,7 @@ void lemur::set(std::string nm,std::vector<double> val)
         {
             for (int i=1;i<nn+1;i++)
             {
-                Z[i]=val[i-1];
+                Z.at(i)=val[i-1];
             }
             
         }
@@ -247,9 +247,9 @@ void lemur::set(std::string nm,std::vector<double> val)
         {
             for (int i=1;i<nn+1;i++)
             {
-                kval[i]=val[i-1];
+                kval.at(i)=val[i-1];
             }
-            //std::cout[kval[2]]
+            //std::cout.at(kval.at(2))
             
         }
         if (nm.compare("undercapacity")==0)
@@ -257,7 +257,7 @@ void lemur::set(std::string nm,std::vector<double> val)
             
             for (int i=1;i<nn+1;i++)
             {
-                undercapacity[i]=val[i-1];
+                undercapacity.at(i)=val[i-1];
             }
             
         }
@@ -291,8 +291,8 @@ void lemur::findsteepest()
 #pragma omp simd
     for (int i=1;i<=nn;i++)
     {
-        slpis[i]=i;
-        dists[i]=100000000000000;
+        slpis.at(i)=i;
+        dists.at(i)=100000000000000;
     }
 #pragma omp parallel for private(slpyp,slpym,slpxm,slpxpyp,slpxmym,maxslp,ij) firstprivate(slpi,diag,ny,nx,dy,dx)
     for(int j=2;j<nx;j++)
@@ -302,19 +302,19 @@ void lemur::findsteepest()
         {
             
             ij = i+(j-1)*ny;
-            if (BCX[ij]==1)
+            if (BCX.at(ij)==1)
             {
                 
                 continue;
             }
-            slpyp = (Z[ij]-Z[ij+1])/dy;
-            slpym = (Z[ij]-Z[ij-1])/dy;
-            slpxp = (Z[ij]-Z[ij+ny])/dx;
-            slpxm = (Z[ij] -Z[ij-ny])/dx;
-            slpxpyp = (Z[ij]-Z[ij+1+ny])/diag;
-            slpxpym = (Z[ij]-Z[ij-1+ny])/diag;
-            slpxmyp = (Z[ij]-Z[ij+1-ny])/diag;
-            slpxmym = (Z[ij]-Z[ij-1-ny])/diag;
+            slpyp = (Z.at(ij)-Z.at(ij+1))/dy;
+            slpym = (Z.at(ij)-Z.at(ij-1))/dy;
+            slpxp = (Z.at(ij)-Z.at(ij+ny))/dx;
+            slpxm = (Z.at(ij) -Z.at(ij-ny))/dx;
+            slpxpyp = (Z.at(ij)-Z.at(ij+1+ny))/diag;
+            slpxpym = (Z.at(ij)-Z.at(ij-1+ny))/diag;
+            slpxmyp = (Z.at(ij)-Z.at(ij+1-ny))/diag;
+            slpxmym = (Z.at(ij)-Z.at(ij-1-ny))/diag;
             maxslp = 0;
             slpi = 0;
             
@@ -322,50 +322,50 @@ void lemur::findsteepest()
             {
                 maxslp = slpyp;
                 slpi = 1;
-                dists[ij] = dy;
+                dists.at(ij) = dy;
             }
             
             if (slpym>maxslp)
             {
                 maxslp = slpym;
                 slpi = -1;
-                dists[ij]=dy;
+                dists.at(ij)=dy;
             }
             if(slpxp>maxslp)
                 
             {maxslp = slpxp;
              slpi = ny;
-             dists[ij]=dx;
+             dists.at(ij)=dx;
             }
             if (slpxm>maxslp)
             {
                 maxslp = slpxm;
                 slpi = -ny;
-                dists[ij]=dx;
+                dists.at(ij)=dx;
             }
             if (slpxpyp>maxslp)
             {
                 maxslp = slpxpyp;
                 slpi = ny+1;
-                dists[ij]=diag;
+                dists.at(ij)=diag;
             }
             if (slpxpym>maxslp)
             {
                 maxslp = slpxpym;
                 slpi = ny-1;
-                dists[ij]=diag;
+                dists.at(ij)=diag;
             }
             if(slpxmyp>maxslp)
             {
                 maxslp = slpxmyp;
                 slpi = -ny+1;
-                dists[ij]=diag;
+                dists.at(ij)=diag;
             }
             if(slpxmym>maxslp)
             {
                 maxslp = slpxmym;
                 slpi = -ny-1;
-                dists[ij]=diag;
+                dists.at(ij)=diag;
                 
             }
             if (maxslp==0)
@@ -373,11 +373,11 @@ void lemur::findsteepest()
                 nsink++;
             }
             
-            slpis[ij] = slpi+ij;
+            slpis.at(ij) = slpi+ij;
             
         }
     }
-    //std::cout<<nsink<<std::endl;
+    std::cout<<nsink<<std::endl;
     //mexPrintf("%d\n",nsink);
 }
 
@@ -386,10 +386,10 @@ void lemur::getdonors()
 #pragma omp parallel for
     for (int ij=1;ij<=nn;ij++)
     {
-        if (slpis[ij]!=ij)
+        if (slpis.at(ij)!=ij)
         {
-            ndons.at(slpis[ij])++;
-            donors[slpis[ij]][ndons[slpis[ij]]]=ij;
+            ndons.at(slpis.at(ij))++;
+            donors.at(slpis.at(ij)).at(ndons.at(slpis.at(ij)))=ij;
         }
     }
 }
@@ -401,7 +401,7 @@ void lemur::createstack()
 #pragma omp simd
     for (int ij=1;ij<=nn;ij++)
     {
-        if (slpis[ij]==ij)
+        if (slpis.at(ij)==ij)
         {
             olist.push_back(ij);
         }
@@ -412,16 +412,16 @@ void lemur::createstack()
     {
         int d;
         int p=1;
-        int ij=olist[i];
+        int ij=olist.at(i);
         
 
-        stackij[i].push_back(ij);
+        stackij.at(i).push_back(ij);
         p++;
 
-        for (int ik=1;ik<=ndons[ij];ik++)
+        for (int ik=1;ik<=ndons.at(ij);ik++)
         {
             numiter=0;
-            d = donors[ij][ik];
+            d = donors.at(ij).at(ik);
             p = recursivestack(d,p,i);
         }
     }
@@ -429,7 +429,7 @@ void lemur::createstack()
 #pragma omp parallel for
     for (int i=1;i<olist.size();i++)
     {
-        olength[i]=stackij[i].size();
+        olength.at(i)=stackij.at(i).size();
     }
     
     nnn=olist.size();
@@ -439,13 +439,13 @@ void lemur::createstack()
     for (int j=1;j<nnn;j++)
     {
         
-        for (int i=0; i<olength[j];i++)
+        for (int i=0; i<olength.at(j);i++)
         {
-            stack[cc]=stackij[j][i];
+            stack.at(cc)=stackij.at(j).at(i);
             cc++;
         }
     }
-    // mexPrintf("%d\n",stack[0]);
+    // mexPrintf("%d\n",stack.at(0));
 }
 int lemur::recursivestack(int r,int p,int i)
 {
@@ -453,12 +453,12 @@ int lemur::recursivestack(int r,int p,int i)
     if (p<=nn&&numiter<1e5)
     {
         int d;
-        stackij[i].push_back(r);
+        stackij.at(i).push_back(r);
         p++;
 #pragma omp simd
-        for (int ij=1;ij<=ndons[r];ij++)
+        for (int ij=1;ij<=ndons.at(r);ij++)
         {
-            d = donors[r][ij];
+            d = donors.at(r).at(ij);
             p = recursivestack(d,p,i);
         }
         return p;
@@ -477,7 +477,7 @@ void lemur::createstack2()
 #pragma omp simd
     for (int ij=1;ij<=nn;ij++)
     {
-        if (slpis[ij]==ij)
+        if (slpis.at(ij)==ij)
         {
             olist.push_back(ij);
         }
@@ -490,21 +490,21 @@ void lemur::createstack2()
     {
         int d;
         int ndon=0;
-        int ij=olist[i];
+        int ij=olist.at(i);
         
 
-        stackij[i].push_back(ij);
+        stackij.at(i).push_back(ij);
         
         for (int u=0;u<=ndon;u++)
         {
             
-            ij=stackij[i][u];
+            ij=stackij.at(i).at(u);
             
             for (int ik=1;ik<=ndons.at(ij);ik++)
             {
                 ndon++;
-                d = donors[ij][ik];
-                stackij[i].push_back(d);
+                d = donors.at(ij).at(ik);
+                stackij.at(i).push_back(d);
                 
             }
         }
@@ -513,7 +513,7 @@ void lemur::createstack2()
 #pragma omp parallel for
     for (int i=1;i<olist.size();i++)
     {
-        olength[i]=stackij[i].size();
+        olength.at(i)=stackij.at(i).size();
     }
     nnn=olist.size();
     int cc=1;
@@ -521,13 +521,13 @@ void lemur::createstack2()
     for (int j=1;j<nnn;j++)
     {
         
-        for (int i=0; i<olength[j];i++)
+        for (int i=0; i<olength.at(j);i++)
         {
-            stack[cc]=stackij[j][i];
+            stack.at(cc)=stackij.at(j).at(i);
             cc++;
         }
     }
-    // mexPrintf("%d\n",stack[0]);
+    // mexPrintf("%d\n",stack.at(0));
 }
 
 void lemur::getacc()
@@ -536,16 +536,16 @@ void lemur::getacc()
 #pragma omp simd
     for (int i=1;i<=nn;i++)
     {
-        accgrid[i]=1.0;
+        accgrid.at(i)=1.0;
     }
 #pragma omp parallel for
     for (int j=1;j<nnn;j++)
     {
 #pragma omp simd
-        for (int i=olength[j]-1;i>0;i--)
+        for (int i=olength.at(j)-1;i>0;i--)
         {
             
-            accgrid[slpis[stackij[j][i]]]=accgrid[slpis[stackij[j][i]]]+accgrid[stackij[j][i]];
+            accgrid.at(slpis.at(stackij.at(j).at(i)))=accgrid.at(slpis.at(stackij.at(j).at(i)))+accgrid.at(stackij.at(j).at(i));
         }
     }
     
@@ -583,17 +583,17 @@ void lemur::erode()
             for (int j=1;j<nnn;j++)
             {
 #pragma omp simd
-                for (int i=1;i<olength[j];i++)
+                for (int i=1;i<olength.at(j);i++)
                 {
-                    if (undercapacity[stackij[j][i]]==0)
+                    if (undercapacity.at(stackij.at(j).at(i))==0)
                     {
-                        if (Z[stackij[j][i]]>=0)
+                        if (Z.at(stackij.at(j).at(i))>=0)
                         {
                             
-                            f = kval[stackij[j][i]]/std::pow(dists[stackij[j][i]],n_) *
-                                    std::pow(accgrid[stackij[j][i]],m)*sp1*
-                                    std::pow(Zi[stackij[j][i]]-std::max(0.0,Z[slpis[stackij[j][i]]]),n_-1.0);
-                            f2=0;//dt/(Zi[stackij[j][i]]-std::max(0.0,Z[slpis[stackij[j][i]]])); Gives weird result, probably wrong
+                            f = kval.at(stackij.at(j).at(i))/std::pow(dists.at(stackij.at(j).at(i)),n_) *
+                                    std::pow(accgrid.at(stackij.at(j).at(i)),m)*sp1*
+                                    std::pow(Zi.at(stackij.at(j).at(i))-std::max(0.0,Z.at(slpis.at(stackij.at(j).at(i)))),n_-1.0);
+                            f2=0;//dt/(Zi.at(stackij.at(j).at(i))-std::max(0.0,Z.at(slpis.at(stackij.at(j).at(i))))); Gives weird result, probably wrong
                         }
                         x=1;
                         
@@ -605,17 +605,17 @@ void lemur::erode()
                             x=(x-(x-1+f*std::pow(x,n_))/(1+(n_)*f*std::pow(x,n_-1.0)));
                         }
                         
-                        Zi1=Z[stackij[j][i]];
-                        if (Z[stackij[j][i]]>=0)
-                        {///Z[stackij[j][i]]=(f*Z[slpis[stackij[j][i]]]+Z[stackij[j][i]])/(1+f);
-                            Z[stackij[j][i]] = std::max(0.0,Z[slpis[stackij[j][i]]]) +x*
-                                    std::max(0.0,(Zi[stackij[j][i]]-std::max(0.0,Z[slpis[stackij[j][i]]])));
+                        Zi1=Z.at(stackij.at(j).at(i));
+                        if (Z.at(stackij.at(j).at(i))>=0)
+                        {///Z.at(stackij.at(j).at(i))=(f*Z.at(slpis.at(stackij.at(j).at(i)))+Z.at(stackij.at(j).at(i)))/(1+f);
+                            Z.at(stackij.at(j).at(i)) = std::max(0.0,Z.at(slpis.at(stackij.at(j).at(i)))) +x*
+                                    std::max(0.0,(Zi.at(stackij.at(j).at(i))-std::max(0.0,Z.at(slpis.at(stackij.at(j).at(i))))));
                             
                         }
-                        // Z[stackij[j][i]]=(Zi[stackij[j][i]]+f*Z[slpis[stackij[j][i]]]+dt*U[stackij[j][i]])/(1+f);}
-                        if (kval[stackij[j][i]]>0)
+                        // Z.at(stackij.at(j).at(i))=(Zi.at(stackij.at(j).at(i))+f*Z.at(slpis.at(stackij.at(j).at(i)))+dt*U.at(stackij.at(j).at(i)))/(1+f);}
+                        if (kval.at(stackij.at(j).at(i))>0)
                         {
-                            ero[stackij[j][i]]=Zi1-Z[stackij[j][i]];
+                            ero.at(stackij.at(j).at(i))=Zi1-Z.at(stackij.at(j).at(i));
                         }
                     }
                 }
@@ -646,7 +646,7 @@ void lemur::reset()
     for (int i=0;i<BC.size();i++)
     {
         
-        BCX[BC[i]]=1;
+        BCX.at(BC.at(i))=1;
     }
 
   
@@ -666,11 +666,11 @@ void lemur::filll()
         for (int j=1;j<nnn;j++)
         {
 #pragma omp simd
-            for (int i=0;i<olength[j];i++)
+            for (int i=0;i<olength.at(j);i++)
             {
-                if (Z[stackij[j][i]]<=Z[slpis[stackij[j][i]]])
+                if (Z.at(stackij.at(j).at(i))<=Z.at(slpis.at(stackij.at(j).at(i))))
                 {
-                    Z[stackij[j][i]]=Z[slpis[stackij[j][i]]]+1e-4;
+                    Z.at(stackij.at(j).at(i))=Z.at(slpis.at(stackij.at(j).at(i)))+1e-4;
                 }
             }
         }
@@ -679,6 +679,7 @@ void lemur::filll()
 
 void lemur::fillls()
 {
+
     std::vector<double> cero=ero;
     std::vector<double> Zn=Z;
     double Lt;
@@ -707,7 +708,7 @@ void lemur::fillls()
             int y2=1;
             
             int nt1=1;
-            
+
             while (nt1<=dts)
             {
                 y=1;
@@ -719,90 +720,96 @@ void lemur::fillls()
                     {
                         dts*=2;
                         dt/=2;
-                        for (int i=1;i<olength[j];i++)
+                        for (int i=1;i<olength.at(j);i++)
                         {
-                            ero[stackij[j][i]]/=2;
+                            ero.at(stackij.at(j).at(i))/=2;
                         }
                         y=1;
                     }
                     y2++;
+
                     if (y2>5000)
                     {
                         break;
                     }
                     sedsum=0;
                     y++;
-                    for (int i=olength[j]-1;i>=0;i--)
+                    for (int i=olength.at(j)-1;i>=0;i--)
                     {
-                        Zn[stackij[j][i]]=Z[stackij[j][i]];
+                        Zn.at(stackij.at(j).at(i))=Z.at(stackij.at(j).at(i));
                         
-                        cero[stackij[j][i]]=ero[stackij[j][i]];
+                        cero.at(stackij.at(j).at(i))=ero.at(stackij.at(j).at(i));
                         
                     }
-                    
-                    Zn[slpis[stackij[j][0]]]=Z[slpis[stackij[j][0]]];
-                    cero[slpis[stackij[j][0]]]=ero[slpis[stackij[j][0]]];
-                    for (int i=olength[j]-1;i>0;i--)
+
+                    Zn.at(slpis.at(stackij.at(j).at(0)))=Z.at(slpis.at(stackij.at(j).at(0)));
+                    cero.at(slpis.at(stackij.at(j).at(0)))=ero.at(slpis.at(stackij.at(j).at(0)));
+                    for (int i=olength.at(j)-1;i>0;i--)
                     {
-                        if (stackij[j][i]!=slpis[stackij[j][i]])
+                        if (stackij.at(j).at(i)!=slpis.at(stackij.at(j).at(i)))
                         {
-                            
-                            cero[slpis[stackij[j][i]]]+=cero[stackij[j][i]];
+                            cero.at(slpis.at(stackij.at(j).at(i)))+=cero.at(stackij.at(j).at(i));
                             
                         }
                     }
-                    
-                    
+
                     double tl;
                     if (m==1)
                     {
                         
-                        f= dt*ks;
+                        f= dt * ks;
                     }
                     else
                     {
-                        f=dt*kval[stackij[j][1]]*std::pow(dx*dy,m);
+                        //std::cout<<kval.at(stackij.at(j).at(1));
+                        if (stackij.at(j).size()>1){
+
+                        f=dt*kval.at(stackij.at(j).at(1))*std::pow(dx*dy,m);
+                        
+                        }
                     }
-                    
+
                     double A;
                     
-                    for (int i=1;i<=olength[j]-1;i++)
-                    {
+                    for (int i=1;i<=olength.at(j)-1;i++)
+                    {                             std::cout<<i<<std::endl;
+
                         
-                        if (undercapacity[stackij[j][i]]>=1&&Zn[stackij[j][i]]>=0)
+                        if (undercapacity.at(stackij.at(j).at(i)) >= 1 && Zn.at(stackij.at(j).at(i)) >= 0 )
                         {
                             
-                            A=std::pow(accgrid[stackij[j][i]],m);
+                            A=std::pow(accgrid.at(stackij.at(j).at(i)),m);
                             
                             if (m==1)//If uncercapacity
                             {
                                 Lt=L;
                                 A2=1.0;
-                                di=dists[stackij[j][i]];
+                                di=dists.at(stackij.at(j).at(i));
                                 d2=1.0;
                             }
                             else//If yuan et al
                             {
                                 Lt=1.0;
-                                A2=accgrid[stackij[j][i]];
+                                A2=accgrid.at(stackij.at(j).at(i));
                                 di=1.0;
-                                d2=std::pow(dists[stackij[j][i]],n_);
+                                d2=std::pow(dists.at(stackij.at(j).at(i)),n_);
+
                             }
                             
            
-                            tl=((cero[stackij[j][i]]-ero[stackij[j][i]])/L/A2*di+Zn[stackij[j][i]]+
-                                    std::max(0.0,Zn[slpis[stackij[j][i]]])*
-                                    f/Lt/d2*A)/(f/Lt/d2*A+1.0);
+                            tl=((cero.at(stackij.at(j).at(i))-ero.at(stackij.at(j).at(i)))/L/A2*di+Zn.at(stackij.at(j).at(i))+
+                                    std::max(0.0,Zn.at(slpis.at(stackij.at(j).at(i))))*
+                                    f/Lt/d2*A)/(f/Lt/d2*A+1.0); 
                             
           
                             
-                            erol=ero[stackij[j][i]];
-                            ero[stackij[j][i]]=(Zn[stackij[j][i]]-tl);
+                            erol=ero.at(stackij.at(j).at(i));
+                            ero.at(stackij.at(j).at(i))=(Zn.at(stackij.at(j).at(i))-tl);
                             
-                            Zn[stackij[j][i]]=tl;
+                            Zn.at(stackij.at(j).at(i))=tl;
                             
-                            if (sedsum<std::abs(erol-ero[stackij[j][i]]))
-                            {sedsum=std::abs(erol-ero[stackij[j][i]]);}
+                            if (sedsum<std::abs(erol-ero.at(stackij.at(j).at(i))))
+                            {sedsum=std::abs(erol-ero.at(stackij.at(j).at(i)));}
                             
                         }
                         
@@ -810,10 +817,10 @@ void lemur::fillls()
                     }
                 }
                 
-                for (int i=0;i<=olength[j]-1;i++)
+                for (int i=0;i<=olength.at(j)-1;i++)
                 {
-                    if (undercapacity[stackij[j][i]]>=1)
-                    {Z[stackij[j][i]]=Zn[stackij[j][i]];
+                    if (undercapacity.at(stackij.at(j).at(i))>=1)
+                    {Z.at(stackij.at(j).at(i))=Zn.at(stackij.at(j).at(i));
                      
                     }
                 }
@@ -821,7 +828,7 @@ void lemur::fillls()
             
             
             
-            {ssum+=cero.at(stackij[j][0]);
+            {ssum+=cero.at(stackij.at(j).at(0));
             }
             
         }
@@ -880,56 +887,56 @@ void lemur::fillls2()
                     y++;
                     
                     
-                    Zn[slpis[stackij[j][0]]]=Z[slpis[stackij[j][0]]];
+                    Zn.at(slpis.at(stackij.at(j).at(0)))=Z.at(slpis.at(stackij.at(j).at(0)));
                     
                     
                     double tl;
                     double f= dt*ks;
                     double A;
-                    for (int i=olength[j]-1;i>0;i--)
+                    for (int i=olength.at(j)-1;i>0;i--)
                     {
-                        cerol[stackij[j][i]]=cero[stackij[j][i]];
-                        cerol[slpis[stackij[j][i]]]=cero[slpis[stackij[j][i]]];
+                        cerol.at(stackij.at(j).at(i))=cero.at(stackij.at(j).at(i));
+                        cerol.at(slpis.at(stackij.at(j).at(i)))=cero.at(slpis.at(stackij.at(j).at(i)));
                         
-                        cero[stackij[j][i]]=0;
-                        cero[slpis[stackij[j][i]]]=0;
+                        cero.at(stackij.at(j).at(i))=0;
+                        cero.at(slpis.at(stackij.at(j).at(i)))=0;
                         
                     }
-                    cero[stackij[j][olength[j]-1]]=0;
-                    cero[stackij[j][0]]=0;
-                    for (int i=olength[j]-1;i>0;i--)
+                    cero.at(stackij.at(j).at(olength.at(j)-1))=0;
+                    cero.at(stackij.at(j).at(0))=0;
+                    for (int i=olength.at(j)-1;i>0;i--)
                     {
                         if (nt1==2)
                             
                         {                        no++;
                         }
-                        if (undercapacity[stackij[j][i]]>=1)
+                        if (undercapacity.at(stackij.at(j).at(i))>=1)
                         {
                             
-                            A=std::pow(accgrid[stackij[j][i]],1.0);
+                            A=std::pow(accgrid.at(stackij.at(j).at(i)),1.0);
                             
-                            tl=1/L*dists[stackij[j][i]]*(cero[stackij[j][i]]-
-                                    ks*dt*accgrid[stackij[j][i]]*
-                                    (Z[stackij[j][i]]-std::max(0.0,Z[slpis[stackij[j][i]]]))/dists[stackij[j][i]]);
+                            tl=1/L*dists.at(stackij.at(j).at(i))*(cero.at(stackij.at(j).at(i))-
+                                    ks*dt*accgrid.at(stackij.at(j).at(i))*
+                                    (Z.at(stackij.at(j).at(i))-std::max(0.0,Z.at(slpis.at(stackij.at(j).at(i)))))/dists.at(stackij.at(j).at(i)));
                             
-                            erol=ero[stackij[j][i]];
+                            erol=ero.at(stackij.at(j).at(i));
                             
-                            Zn[stackij[j][i]]+=tl;
-                            cero[stackij[j][i]]-=tl;
-                            cero[slpis[stackij[j][i]]]+=cero[stackij[j][i]];
+                            Zn.at(stackij.at(j).at(i))+=tl;
+                            cero.at(stackij.at(j).at(i))-=tl;
+                            cero.at(slpis.at(stackij.at(j).at(i)))+=cero.at(stackij.at(j).at(i));
                             
                             
-                            if (sedsum<std::abs(erol-ero[stackij[j][i]]))
-                            {sedsum=std::abs(erol-ero[stackij[j][i]]);}
+                            if (sedsum<std::abs(erol-ero.at(stackij.at(j).at(i))))
+                            {sedsum=std::abs(erol-ero.at(stackij.at(j).at(i)));}
                         }
                         
                         
                     }
                 }
-                for (int i=1;i<=olength[j]-1;i++)
+                for (int i=1;i<=olength.at(j)-1;i++)
                 {
-                    if (undercapacity[stackij[j][i]]>=1)
-                    {Z[stackij[j][i]]=Zn[stackij[j][i]];
+                    if (undercapacity.at(stackij.at(j).at(i))>=1)
+                    {Z.at(stackij.at(j).at(i))=Zn.at(stackij.at(j).at(i));
                      
                     }
                 }
@@ -937,7 +944,7 @@ void lemur::fillls2()
             
             
             
-            {ssum+=cero.at(stackij[j][0]);
+            {ssum+=cero.at(stackij.at(j).at(0));
             }
         }
         
@@ -953,22 +960,22 @@ void lemur::basinfill(int ij,int ij1)
     double min=Z.at(ij);
     for (int i=0;i<8;i++)
     {
-        if (Z[ij+idx[i]]<min)
+        if (Z.at(ij+idx.at(i))<min)
         {
-            min=Z[ij+idx[i]];
+            min=Z.at(ij+idx.at(i));
         }
         
     }
-    if (Z[ij]<=min)
+    if (Z.at(ij)<=min)
     {
-        Z[ij]=min+.01;
-        adds[ij1]+=min+.01-Z[ij];
+        Z.at(ij)=min+.01;
+        adds.at(ij1)+=min+.01-Z.at(ij);
         
         basinfill(ij,ij1);
         for (int i=0;i<8;i++)
         {
-            if (BCX[ij+idx[i]]==0)
-            {basinfill(ij+idx[i],ij1);}
+            if (BCX.at(ij+idx.at(i))==0)
+            {basinfill(ij+idx.at(i),ij1);}
         }
     }
 }
@@ -980,7 +987,7 @@ if (firstcall == 0)
         
     for (int i=1;i<=nn;i++)
     {
-        Z[i] += watertot[i];
+        Z.at(i) += watertot.at(i);
     }
 
     if (!usefd)
@@ -988,7 +995,6 @@ if (firstcall == 0)
         findsteepest();
 
         getdonors();
-        std::cout<<std::endl<<"i"<<ks<<std::endl;
 
         createstack2();
 
@@ -999,7 +1005,7 @@ if (firstcall == 0)
 
     for (int i=1;i<=nn;i++)
     {
-        Z[i]-=watertot[i];
+        Z.at(i)-=watertot.at(i);
     }
 
     erode();
@@ -1011,38 +1017,38 @@ if (firstcall == 0)
     for (int i=1;i<=ny;i++)
     {
         
-        if (BCX[i]==0)
+        if (BCX.at(i)==0)
         {
-            Z[i]=Z[i+ny];
-            ero[i]=0;
+            Z.at(i)=Z.at(i+ny);
+            ero.at(i)=0;
         }
     }
 #pragma omp parallel for
     for (int i=nn-ny+1;i<=nn;i++)
     {
-        if (BCX[i]==0)
+        if (BCX.at(i)==0)
         {
-            Z[i]=Z[i-ny];
-            ero[i]=0;
+            Z.at(i)=Z.at(i-ny);
+            ero.at(i)=0;
         }
         
     }
 #pragma omp parallel for
     for (int i=1;i<=nn;i+=ny)
     {
-        if (BCX[i]==0)
+        if (BCX.at(i)==0)
         {
-            Z[i]=Z[i+1];
-            ero[i]=0;
+            Z.at(i)=Z.at(i+1);
+            ero.at(i)=0;
         }
         
     }
     for (int i=ny;i<=nn;i+=ny)
     {
-        if (BCX[i]==0)
+        if (BCX.at(i)==0)
         {
-            Z[i]=Z[i-1];
-            ero[i]=0;
+            Z.at(i)=Z.at(i-1);
+            ero.at(i)=0;
         }
     }
     firstcall = 0;
@@ -1079,28 +1085,28 @@ std::vector<double> lemur::get(std::string nm)
     {
         for (int i=1;i<nn;i++)
         {
-            val[i-1]=BCX[i];
+            val[i-1]=BCX.at(i);
         }
     }
     else if (nm.compare("acc")==0)
     {
         for (int i=1;i<nn;i++)
         {
-            val[i-1]=accgrid[i];
+            val[i-1]=accgrid.at(i);
         }
     }
     else if (nm.compare("bc")==0)
     {
         for (int i=0;i<BC.size();i++)
         {
-            val[i-1]=accgrid[i];
+            val[i-1]=accgrid.at(i);
         }
     }
     else if (nm.compare("landsurf")==0)
     {
         for (int i=1;i<nn;i++)
         {
-            val[i-1]=landsurf[i];
+            val[i-1]=landsurf.at(i);
         }
     }
     else if (nm.compare("z")==0)
@@ -1109,7 +1115,7 @@ std::vector<double> lemur::get(std::string nm)
  
         for (int i=1;i<nn+1;i++)
         {
-            val[i-1]=Z[i];
+            val[i-1]=Z.at(i);
         }
         
     }
@@ -1117,17 +1123,17 @@ std::vector<double> lemur::get(std::string nm)
     {
         for (int i=1;i<nn+1;i++)
         {
-            val[i-1]=sinkareas[i];
+            val[i-1]=sinkareas.at(i);
         }
         
     }
 
     else if (nm.compare("k")==0)
     {
-//std::cout<<kval[2];
+//std::cout<<kval.at(2);
         for (int i=1;i<nn+1;i++)
         {
-            val[i-1]=kval[i];
+            val[i-1]=kval.at(i);
         }
         
     }
@@ -1135,14 +1141,14 @@ std::vector<double> lemur::get(std::string nm)
     {
         for (int i=1;i<nn+1;i++)
         {
-            val[i-1]=watertot[i];
+            val[i-1]=watertot.at(i);
         }
     }
         else if (nm.compare("k")==0)
     {
         for (int i=1;i<nn+1;i++)
         {
-            val[i-1]=kval[i];
+            val[i-1]=kval.at(i);
         }
         
     }
@@ -1150,7 +1156,7 @@ std::vector<double> lemur::get(std::string nm)
     {
         for (int i=1;i<nn+1;i++)
         {
-            val[i-1]=undercapacity[i];
+            val[i-1]=undercapacity.at(i);
         }
         
     }
@@ -1159,14 +1165,14 @@ std::vector<double> lemur::get(std::string nm)
     {
          for (int i=1;i<nn+1;i++)
         {
-            val[i-1]=stack[i];
+            val[i-1]=stack.at(i);
         }
     }
     else if (nm.compare("rec")==0)
     {
          for (int i=1;i<nn+1;i++)
         {
-            val[i-1]=slpis[i];
+            val[i-1]=slpis.at(i);
         }
     }
     else
@@ -1209,28 +1215,28 @@ priorityq::priorityq(std::vector<double>& grid)
 
 int priorityq::top()
 {
-    return left[1];
+    return left.at(1);
     
 }
 int priorityq::pop()
 {
     
     
-    uu =left[1];
+    uu =left.at(1);
     
-    left[1]=left[numel];
-    left[numel]=0;
+    left.at(1)=left.at(numel);
+    left.at(numel)=0;
     u=2;
     ul=u/2;
     while (u<numel-2)
     {
-        if (z[left[u]]<z[left[u+1]])
+        if (z.at(left.at(u))<z.at(left.at(u+1)))
         {
             
-            if (z[left[ul]]>z[left[u]])
+            if (z.at(left.at(ul))>z.at(left.at(u)))
             {
                 
-                std::swap(left[ul],left[u]);
+                std::swap(left.at(ul),left.at(u));
                 
                 ul=u;
                 u=2*u;
@@ -1242,9 +1248,9 @@ int priorityq::pop()
                 break;
             }
         }
-        else if(z[left[ul]]>z[left[u+1]])
+        else if(z.at(left.at(ul))>z.at(left.at(u+1)))
         {
-            std::swap(left[ul],left[u+1]);
+            std::swap(left.at(ul),left.at(u+1));
             
             u=2*(u+1);
             ul=u/2;
@@ -1273,14 +1279,14 @@ void priorityq::push(int i)
     u=numel;
     ul=u/2;
     
-    left[u]=i;
+    left.at(u)=i;
     while (ul>0)
     {
         
-        if (z[left[ul]]>z[left[u]])
+        if (z.at(left.at(ul))>z.at(left.at(u)))
         {
             
-            std::swap(left[ul],left[u]);
+            std::swap(left.at(ul),left.at(u));
             
             
             
@@ -1319,17 +1325,17 @@ void lemur::lakefill2()
         
         for (int i=0;i<BC.size();i++)
         {
-            open.push(BC[i]);
-            closed[BC[i]]=true;
+            open.push(BC.at(i));
+            closed.at(BC.at(i))=true;
             c++;
         }
     }
     
     for (int i=1;i<=ny;i++)
     {
-        if (!closed[i])
+        if (!closed.at(i))
         {
-            closed[i]=true;
+            closed.at(i)=true;
             
             open.push(i);
             
@@ -1339,9 +1345,9 @@ void lemur::lakefill2()
     }
     for (int i=nn-ny+1;i<=nn;i++)
     {
-        if (!closed[i])
+        if (!closed.at(i))
         {
-            closed[i]=true;
+            closed.at(i)=true;
             
             open.push(i);
             
@@ -1350,9 +1356,9 @@ void lemur::lakefill2()
     }
     for (int i=ny;i<=nn;i+=ny)
     {
-        if (!closed[i])
+        if (!closed.at(i))
         {
-            closed[i]=true;
+            closed.at(i)=true;
             
             open.push(i);
             
@@ -1361,9 +1367,9 @@ void lemur::lakefill2()
     }
     for (int i=ny+1;i<=nn;i+=ny)
     {
-        if (!closed[i])
+        if (!closed.at(i))
         {
-            closed[i]=true;
+            closed.at(i)=true;
             
             open.push(i);
             
@@ -1377,7 +1383,7 @@ void lemur::lakefill2()
     pittop=-9999;
     while (c>0||p>0)
     {
-        if (p>0&&c>0&&pit[p-1]==-9999)//pq[c-1]==pit[p-1])
+        if (p>0&&c>0&&pit.at(p-1)==-9999)//pq.at(c-1)==pit.at(p-1))
         {
             //s=open.top();
             s=open.pop();
@@ -1387,12 +1393,12 @@ void lemur::lakefill2()
         else if (p>0)
         {
             
-            s=pit[p-1];
-            pit[p-1]=-9999;
+            s=pit.at(p-1);
+            pit.at(p-1)=-9999;
             p--;
             if (pittop==-9999)
             {
-                pittop=Z[s];
+                pittop=Z.at(s);
             }
         }
         else
@@ -1408,21 +1414,21 @@ void lemur::lakefill2()
         for (int i=0;i<=7;i++)
         {
             
-            ij = idx[i]+s;
+            ij = idx.at(i)+s;
             
             ii= (ij-1)%ny+1;
             jj = (int)((ij-1)/ny)+1;
-            if ((ii>=1)&&(jj>=1)&&(ii<=ny)&&(jj<=nx) && !closed[ij])
+            if ((ii>=1)&&(jj>=1)&&(ii<=ny)&&(jj<=nx) && !closed.at(ij))
             {
                 
-                closed[ij]=true;
+                closed.at(ij)=true;
                 
-                if (Z[ij]<=Z[s])
+                if (Z.at(ij)<=Z.at(s))
                 {
                     
-                    Z[ij]=Z[s]+1e-10;
+                    Z.at(ij)=Z.at(s)+1e-10;
                     
-                    pit[p]=ij;
+                    pit.at(p)=ij;
                     p++;
                     
                 }
@@ -1462,21 +1468,21 @@ void lemur::landsed()
     double tsed=0;
     for (int i=1;i<=ny;i++)
     {
-        usedr[i]=true;
+        usedr.at(i)=true;
     }
     
     for (int i=nn-ny+1;i<=nn;i++)
     {
-        usedr[i]=true;
+        usedr.at(i)=true;
     }
     
     for (int i=ny;i<=nn;i+=ny)
     {
-        usedr[i]=true;
+        usedr.at(i)=true;
     }
     for (int i=ny+1;i<=nn;i+=ny)
     {
-        usedr[i]=true;
+        usedr.at(i)=true;
     }
     std::fill(runoff.begin(),runoff.end(),precip);
     //build cumulative sediment from ero and stream network
@@ -1486,22 +1492,22 @@ void lemur::landsed()
     for (int i =nn;i>=1;i--)
     {
         
-        tsed+=ero[stack[i]];
-        if (slpis[stack[i]]!=stack[i])
+        tsed+=ero.at(stack.at(i));
+        if (slpis.at(stack.at(i))!=stack.at(i))
         {
-            sed[slpis[stack[i]]] +=sed[stack[i]];
-            runoff[slpis[stack[i]]] += runoff[stack[i]];
+            sed.at(slpis.at(stack.at(i))) +=sed.at(stack.at(i));
+            runoff.at(slpis.at(stack.at(i))) += runoff.at(stack.at(i));
         }
     }
     int nsink=0;
     //#pragma omp parallel for
     for (int i =1;i<=nn;i++)
     {
-        if (slpis[stack[i]]!=stack[i])
+        if (slpis.at(stack.at(i))!=stack.at(i))
         {
             
-            sed[stack[i]]=0;
-            runoff[stack[i]]=0;
+            sed.at(stack.at(i))=0;
+            runoff.at(stack.at(i))=0;
             
         }
         else
@@ -1513,7 +1519,7 @@ void lemur::landsed()
 
     for (int i = 1;i <= nn;i++)
     {
-        if( (landsurf[i] < Z[i]) && !(usedr[i]) )
+        if( (landsurf.at(i) < Z.at(i)) && !(usedr.at(i)) )
         {
 
             nseds=0;
@@ -1539,27 +1545,27 @@ void lemur::landsed()
             {
                 fact2=1;
             }
-            else if (volume>0)
+            else if (volume-massextra>0)
             {
-                fact2 = std::max(0.0,(massextra_precip*dt-massextra-evaprate*area*dt)/volume);
+                fact2 = std::max(0.0,(massextra_precip*dt-evaprate*area*dt)/(volume-massextra));
             }
             
 
             double addsed;
             for (int j=1;j<=nseds;j++)
             {
-                if (sedlist[j]>nn||sedlist[j]<0)
+                if (sedlist.at(j)>nn||sedlist.at(j)<0)
                 {std::cout<<"warning: bad access in recursive sedfill"<<std::endl;
                  break;
                 }
                 
-                addsed = (Z[sedlist[j]]-landsurf[sedlist[j]])*fact;
-                landsurf[sedlist[j]] += addsed;
-                addprecip = (Z[sedlist[j]]-(landsurf[sedlist[j]]))*fact2;
+                addsed = (Z.at(sedlist.at(j))-landsurf.at(sedlist.at(j)))*fact;
+                landsurf.at(sedlist.at(j)) += addsed;
+                addprecip = (Z.at(sedlist.at(j))-(landsurf.at(sedlist.at(j)))) * fact2;
                 
-                //landsurf[sedlist[j]] += addprecip;
-                watertot[sedlist[j]] += addprecip;
-                sinkareas[sedlist[j]] = area;
+                //landsurf.at(sedlist.at(j)) += addprecip;
+                watertot.at(sedlist.at(j)) += addprecip;
+                sinkareas.at(sedlist.at(j)) = area;
                 
             }
             
@@ -1572,9 +1578,9 @@ void lemur::landsed()
     {
         for (int i=1;i<nn+1;i++)
         {
-            if (sinkareas[i]<maxareasinkfill)
+            if (sinkareas.at(i)<maxareasinkfill)
             {
-                landsurf[i] = Z[i];
+                landsurf.at(i) = Z.at(i);
             }
         }
     }
@@ -1583,7 +1589,7 @@ void lemur::landsed()
 }
 void lemur::recursivesed(int ij)
 {
-    usedr[ij]=true;
+    usedr.at(ij)=true;
     int c=0;
     bool go = true;
     while (go)
@@ -1592,39 +1598,39 @@ void lemur::recursivesed(int ij)
         nrecur++;
         nseds++;
         
-        sedlist[nseds]=ij;
+        sedlist.at(nseds)=ij;
         for (int i=0;i<8;i++)
         {
             
-            if( ( landsurf[idx[i]+ij]<Z[idx[i]+ij] ) && (!usedr[idx[i]+ij]) )
+            if( ( landsurf.at(idx.at(i)+ij)<Z.at(idx.at(i)+ij) ) && (!usedr.at(idx.at(i)+ij)) )
             {
-                next[c]=idx[i]+ij;
-                usedr[ij+idx[i]]=true;
+                next.at(c)=idx.at(i)+ij;
+                usedr.at(ij+idx.at(i))=true;
                 c++;
             }
             
         }
         
-        volume+=(Z[ij]-landsurf[ij]);
+        volume+=(Z.at(ij)-landsurf.at(ij));
         area+=1;
         if (uselandsed==1)
         {
-            massextra+=sed[ij];
+            massextra+=sed.at(ij);
         }
         else if (uselandsed ==2)
         {
-            massextra_precip+=runoff[ij]*precip;
+            massextra_precip+=runoff.at(ij)*precip;
             
         }
         else if (uselandsed == 3)
         {
-            massextra += sed[ij];
-            massextra_precip += runoff[ij]*precip;
+            massextra += sed.at(ij);
+            massextra_precip += runoff.at(ij)*precip;
         }
         c--;
         if (c>=0)
         {
-            ij=next[c];
+            ij=next.at(c);
             
         }
         else
@@ -1646,7 +1652,7 @@ void lemur::checkparam(std::string name, std::vector<double> &var)
     {
         for (int i = 0 ;i <= nn; i ++)
         {
-            if ((var[i] <-1e15) || (var[i] > 1e15))
+            if ((var.at(i) <-1e15) || (var.at(i) > 1e15))
             {
                 std::cout<< "\n" << name << " not set properly "<< "\n";
                 return;
@@ -1667,11 +1673,11 @@ void lemur::checkparam(std::string name, std::vector<int> &var)
     {
         for (int i = 0 ;i < BC.size(); i ++)
         {
-            if (var[i] < 0) 
+            if (var.at(i) < 0) 
             {
                 std::cout<< "\n" << name << " not set properly -"<< "\n";
             }
-            if ((var[i] > nn+1))
+            if ((var.at(i) > nn+1))
             {
                 std::cout<< "\n" << name << " not set properly +"<< "\n";
 
@@ -1682,7 +1688,7 @@ void lemur::checkparam(std::string name, std::vector<int> &var)
     {
         for (int i = 0 ;i <= nn; i ++)
         {
-            if ((var[i] < 0) || (var[i] > 10))
+            if ((var.at(i) < 0) || (var.at(i) > 10))
             {
                 std::cout<< "\n" << name << " not set properly "<< "\n";
 
@@ -1747,12 +1753,12 @@ void lemur::deposit()
     sed=ero;
     for (int i = nn;i>=1;i--)
     {
-        if (slpis[stack[i]]!=stack[i])
+        if (slpis.at(stack.at(i))!=stack.at(i))
         {
             
             
-            sumer+=ero[stack[i]];
-            sed[slpis[stack[i]]]+=sed[stack[i]];
+            sumer+=ero.at(stack.at(i));
+            sed.at(slpis.at(stack.at(i)))+=sed.at(stack.at(i));
         }
         
     }
@@ -1775,13 +1781,13 @@ void lemur::deposit()
         //int i=1;
         
         
-        catchments[stack[i]]=catchments[slpis[stack[i]]];
-        if (catchments[stack[i]]==1)
+        catchments.at(stack.at(i))=catchments.at(slpis.at(stack.at(i)));
+        if (catchments.at(stack.at(i))==1)
         {
             
-            catchments[stack[i]]=cat;
-            ends[stack[i]]=true;
-            dsi[slpis[stack[i]]]=sed[slpis[stack[i]]];
+            catchments.at(stack.at(i))=cat;
+            ends.at(stack.at(i))=true;
+            dsi.at(slpis.at(stack.at(i)))=sed.at(slpis.at(stack.at(i)));
             
             cat++;
         }
@@ -1795,10 +1801,10 @@ void lemur::deposit()
         for (int j=1;j<=nx;j++)
         {
             ij = i+(j-1)*ny;
-            if (dsi.at(ij)>0&&(((i>1&&i<ny&&j>1&&j<nx))&&Z[ij]<0))
+            if (dsi.at(ij)>0&&(((i>1&&i<ny&&j>1&&j<nx))&&Z.at(ij)<0))
             {
                 rs=minrs;
-                test[ij]=1;
+                test.at(ij)=1;
                 double extrased=1;
                 int rsii=rsi;
                 ri=0;
@@ -1811,12 +1817,12 @@ void lemur::deposit()
                     for (int l=1;l<tic;l++)
                     {
                         
-                        if (!nidx[l])
+                        if (!nidx.at(l))
                         {
                             
-                            if (anglesz[l]>0)
+                            if (anglesz.at(l)>0)
                             {
-                                anglesz[l]=0;
+                                anglesz.at(l)=0;
                             }
                         }
                     }
@@ -1828,17 +1834,17 @@ void lemur::deposit()
                     
                     for (int l=1;l<tic;l++)
                     {
-                        if (!nidx[l])
+                        if (!nidx.at(l))
                         {
-                            circsurf=anglesz[l];
-                            seds[l]=circsurf-Z[zni[l]];
-                            seds[l]=(seds[l]+std::fabs(seds[l]))/2.0;
-                            sumseds+=seds[l];
+                            circsurf=anglesz.at(l);
+                            seds.at(l)=circsurf-Z.at(zni.at(l));
+                            seds.at(l)=(seds.at(l)+std::fabs(seds.at(l)))/2.0;
+                            sumseds+=seds.at(l);
                             
                         }
                     }
                     
-                    extrased=sed[ij]-sumseds;
+                    extrased=sed.at(ij)-sumseds;
                     extrased=(extrased+std::fabs(extrased))/2.0;
                     
                     
@@ -1849,11 +1855,11 @@ void lemur::deposit()
                         double sedx;
                         for (int l=1;l<tic;l++)
                         {
-                            if (!nidx[l])
+                            if (!nidx.at(l))
                             {
                                 sedx=sed.at(ij)/sumseds*seds.at(l);
-                                Z.at(zni.at(l))=Z[zni[l]]+sedx;
-                                sumsedij+=sed[ij]/sumseds*sedx;
+                                Z.at(zni.at(l))=Z.at(zni.at(l))+sedx;
+                                sumsedij+=sed.at(ij)/sumseds*sedx;
                                 
                             }
                         }
@@ -1870,19 +1876,19 @@ void lemur::deposit()
                         for (int l=1;l<tic;l++)
                         {
                             
-                            if (!nidx[l])
+                            if (!nidx.at(l))
                             {
                                 
                                 
-                                sedx=seds[l];
+                                sedx=seds.at(l);
                                 
-                                if (sumseds<=sed[ij])
+                                if (sumseds<=sed.at(ij))
                                 {
-                                    Z[zni[l]]=Z[zni[l]]+sedx;
+                                    Z.at(zni.at(l))=Z.at(zni.at(l))+sedx;
                                 }
                                 else
                                 {
-                                    Z[zni[l]]=Z[zni[l]]+sed[ij]/sumseds*sedx;
+                                    Z.at(zni.at(l))=Z.at(zni.at(l))+sed.at(ij)/sumseds*sedx;
                                 }
                                 
                             }
@@ -1916,83 +1922,83 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
     {
         
         //x,y locations of area within circle
-        anglesx[ri].resize(4*r*r+4);
-        anglesy[ri].resize(4*r*r+4);
+        anglesx.at(ri).resize(4*r*r+4);
+        anglesy.at(ri).resize(4*r*r+4);
         
         //x,y locations on edge of circle
-        anglesx2[ri].resize(4*r*r+4);
-        anglesy2[ri].resize(4*r*r+4);
+        anglesx2.at(ri).resize(4*r*r+4);
+        anglesy2.at(ri).resize(4*r*r+4);
         
         
-        I[ri].resize(4*r*r+4);
-        Dist[ri].resize(4*r*r+4);
-        Dist2[ri].resize(4*r*r+4);
+        I.at(ri).resize(4*r*r+4);
+        Dist.at(ri).resize(4*r*r+4);
+        Dist2.at(ri).resize(4*r*r+4);
         
         //Find cells within circle and on edge
         rangesearch(r,ri);
         
         
         //Find the theta value of cells within circle
-        for (int i=1;i<ic[ri];i++)
+        for (int i=1;i<ic.at(ri);i++)
         {
             
-            anglespolar1[i] = std::atan2((double)anglesy[ri][i]-(double)mres/2,(double)anglesx[ri][i]-(double)mres/2);
+            anglespolar1.at(i) = std::atan2((double)anglesy.at(ri).at(i)-(double)mres/2,(double)anglesx.at(ri).at(i)-(double)mres/2);
             
         }
         
         //Find the theta value of cells on edge
-        for (int i=1;i<ic2[ri];i++)
+        for (int i=1;i<ic2.at(ri);i++)
         {
-            anglespolar2[i] = std::atan2((double)anglesy2[ri][i]-(double)mres/2,(double)anglesx2[ri][i]-(double)mres/2);
+            anglespolar2.at(i) = std::atan2((double)anglesy2.at(ri).at(i)-(double)mres/2,(double)anglesx2.at(ri).at(i)-(double)mres/2);
             
         }
         
         //Find the closest point on edge of circle, to that within the circle
         //based on theta value
-        for (int i=1;i<ic[ri];i++)
+        for (int i=1;i<ic.at(ri);i++)
         {
             double mI1=9999999;
-            for (int j=1;j<ic2[ri];j++)
+            for (int j=1;j<ic2.at(ri);j++)
             {
                 
-                I1=std::fabs((double) anglespolar1[i]-(double)anglespolar2[j]);
+                I1=std::fabs((double) anglespolar1.at(i)-(double)anglespolar2.at(j));
                 
                 if (I1<mI1)
                 {
                     mI1=I1;
-                    I[ri][i]=j;
+                    I.at(ri).at(i)=j;
                 }
                 
             }
         }
         
         //calculate the distance from each interior point to closest edge point
-        for (int i=1;i<ic[ri];i++)
+        for (int i=1;i<ic.at(ri);i++)
         {
-            Dist[ri][i]=std::sqrt(std::pow((double)anglesy2[ri][I[ri][i]]-
-                    (double)anglesy[ri][i],2.0)+
-                    std::pow((double)anglesx2[ri][I[ri][i]]-
-                    (double)anglesx[ri][i],2.0));
+            Dist.at(ri).at(i)=std::sqrt(std::pow((double)anglesy2.at(ri).at(I.at(ri).at(i))-
+                    (double)anglesy.at(ri).at(i),2.0)+
+                    std::pow((double)anglesx2.at(ri).at(I.at(ri).at(i))-
+                    (double)anglesx.at(ri).at(i),2.0));
         }
         
         //make dimension-independent
-        for (int i=1;i<ic2[ri];i++)
+        for (int i=1;i<ic2.at(ri);i++)
         {
-            anglesy2[ri][i]-=(int)mres/2;
-            anglesx2[ri][i]-=(int)mres/2;
+            anglesy2.at(ri).at(i)-=(int)mres/2;
+            anglesx2.at(ri).at(i)-=(int)mres/2;
         }
         //Not sure .
-        for (int i=1;i<ic[ri];i++)
+        for (int i=1;i<ic.at(ri);i++)
         {
-            Dist2[ri][i]=std::sqrt(std::pow(anglesy2[ri][I[ri][i]],2.0) +std::pow(anglesx2[ri][I[ri][i]],2.0));
+            Dist2.at(ri).at(i)=std::sqrt(std::pow(anglesy2.at(ri).at(I.at(ri).at(i)),2.0) +std::pow(anglesx2.at(ri).at(I.at(ri).at(i)),2.0));
             
         }
         
         //Make dimension independent
-        for (int i=1;i<ic[ri];i++)
+        for (int i=1;i<ic.at(ri);i++)
         {
-            anglesy[ri][i]-=(int)mres/2;
-            anglesx[ri][i]-=(int)mres/2;
+            anglesy.at(ri).at(i)-=(int)mres/2;
+            anglesx.at(ri).at(i)-=(int)mres/2;
         }
         
         
@@ -2004,10 +2010,10 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
 
 
     //Number of points within circle
-    int tic= ic[ri];
+    int tic= ic.at(ri);
     
     //Number of points on edge
-    int tic2=ic2[ri];
+    int tic2=ic2.at(ri);
     
     
     bool xsi;
@@ -2018,17 +2024,17 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
     
     
     //Get circle locations
-    for (int l=1;l<ic[ri];l++)
+    for (int l=1;l<ic.at(ri);l++)
     {
-        ys[l]=anglesy[ri][l];
-        xs[l]=anglesx[ri][l];
+        ys.at(l)=anglesy.at(ri).at(l);
+        xs.at(l)=anglesx.at(ri).at(l);
     }
     
     //Get circle edge locations
-    for (int l=1;l<ic2[ri];l++)
+    for (int l=1;l<ic2.at(ri);l++)
     {
-        ys2[l]=anglesy2[ri][l];
-        xs2[l]=anglesx2[ri][l];
+        ys2.at(l)=anglesy2.at(ri).at(l);
+        xs2.at(l)=anglesx2.at(ri).at(l);
     }
     
     
@@ -2038,21 +2044,21 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
     //Edge correct - don't use values which go out of bounds of the grid
     for (int i=1;i<tic2;i++)
     {
-        if (ys2[i]+yi<1)
+        if (ys2.at(i)+yi<1)
         {
-            ys2[i]=-yi+1;
+            ys2.at(i)=-yi+1;
         }
-        if (xs2[i]+xi<1)
+        if (xs2.at(i)+xi<1)
         {
-            xs2[i]=-xi+1;
+            xs2.at(i)=-xi+1;
         }
-        if (ys2[i]+yi>ny)
+        if (ys2.at(i)+yi>ny)
         {
-            ys2[i]=ny-yi;
+            ys2.at(i)=ny-yi;
         }
-        if (xs2[i]+xi>nx)
+        if (xs2.at(i)+xi>nx)
         {
-            xs2[i]=nx-xi;
+            xs2.at(i)=nx-xi;
         }
     }
     
@@ -2065,20 +2071,20 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
         xsi2=false;
         nidxx=false;
         nidxy=false;
-        nidx[i]=false;
-        if (ys[i]+yi<1)
+        nidx.at(i)=false;
+        if (ys.at(i)+yi<1)
         {
             ysi=true;
         }
-        if (xs[i]+xi<1)
+        if (xs.at(i)+xi<1)
         {
             xsi=true;
         }
-        if(ys[i]+yi>ny)
+        if(ys.at(i)+yi>ny)
         {
             ysi2=true;
         }
-        if (xs[i]+xi>nx)
+        if (xs.at(i)+xi>nx)
         {
             xsi2=true;
         }
@@ -2093,7 +2099,7 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
         }
         if (nidxy||nidxx)
         {
-            nidx[i]=true;
+            nidx.at(i)=true;
         }
     }
     
@@ -2101,7 +2107,7 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
     //Get linear indices on edge
     for (int i=1;i<tic2;i++)
     {
-        anglesi2[i]=ys2[i]+yi+(xs2[i]+xi-1)*ny;
+        anglesi2.at(i)=ys2.at(i)+yi+(xs2.at(i)+xi-1)*ny;
         
     }
     
@@ -2110,24 +2116,24 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
     //Find lowest point on edge
     for (int i=1;i<tic2;i++)
     {
-        if (Z[anglesi2[i]]<mz)
+        if (Z.at(anglesi2.at(i))<mz)
         {
-            mz=Z[anglesi2[i]];
+            mz=Z.at(anglesi2.at(i));
         }
         
     }
     double anglez2;
     
     //Calculate cone shape based on shelf and cone angle
-    for (int i=1;i<ic[ri];i++)
+    for (int i=1;i<ic.at(ri);i++)
     {
         
-        anglesz[i]=Dist[ri][i]*std::tan(critangle*0.0174533)*dx+mz;
-        anglez2=0-(r-Dist[ri][i])*std::tan(sangle*0.0174533)*dx;
+        anglesz.at(i)=Dist.at(ri).at(i)*std::tan(critangle*0.0174533)*dx+mz;
+        anglez2=0-(r-Dist.at(ri).at(i))*std::tan(sangle*0.0174533)*dx;
         
-        if (anglez2<anglesz[i])
+        if (anglez2<anglesz.at(i))
         {
-            anglesz[i]=anglez2;
+            anglesz.at(i)=anglez2;
             
         }
         
@@ -2136,12 +2142,12 @@ int lemur::itriangle(int r,int ri, int xi, int yi)
     //Calculate linear indices of cone
     for(int i=1;i<tic;i++)
     {
-        angleszi[i]=ys[i]+r+1+(2*r+1)*(xs[i]+r);
+        angleszi.at(i)=ys.at(i)+r+1+(2*r+1)*(xs.at(i)+r);
     }
     //Calculate linear indices of cone on grid.
     for(int i=1;i<tic;i++)
     {
-        zni[i]=yi+ys[i]+ny*(xi+xs[i]-1);
+        zni.at(i)=yi+ys.at(i)+ny*(xi+xs.at(i)-1);
     }
     
     return tic;
@@ -2164,21 +2170,21 @@ void lemur::rangesearch(int r,int ri)
             double j2=(double)j;
             if (std::pow(i2-y,2.0)+std::pow(j2-x,2.0)<=std::pow(r2,2.0))
             {
-                anglesy[ri][idx1]=i;
-                anglesx[ri][idx1]=j;
+                anglesy.at(ri).at(idx1)=i;
+                anglesx.at(ri).at(idx1)=j;
                 idx1++;
                 
                 if (std::pow(i2-y,2.0)+std::pow(j2-x,2.0)>std::pow(r2-1.41,2.0))
                 {
-                    anglesx2[ri][idx2]=j;
-                    anglesy2[ri][idx2]=i;
+                    anglesx2.at(ri).at(idx2)=j;
+                    anglesy2.at(ri).at(idx2)=i;
                     idx2++;
                 }
             }
         }
     }
-    ic[ri]=idx1;
-    ic2[ri]=idx2;
+    ic.at(ri)=idx1;
+    ic2.at(ri)=idx2;
     
 }
 
@@ -2194,9 +2200,9 @@ void lemur::diffuse()
     {
         for (int i=1;i<ny*nx+1;i++)
         {
-            if (diffuarray[i]<0)
+            if (diffuarray.at(i)<0)
             {
-                diffuarray[i]=0;
+                diffuarray.at(i)=0;
             }
         }
     }
@@ -2207,9 +2213,9 @@ void lemur::diffuse()
     {
         for (int i=1;i<ny*nx+1;i++)
         {
-            if (diffuarray[i]>0)
+            if (diffuarray.at(i)>0)
             {
-                diffuarray[i]=0;
+                diffuarray.at(i)=0;
                 
             }
         }
@@ -2234,12 +2240,12 @@ void lemur::diffuse()
             {
                 
                 ij=(j-1)*ny+i;
-                //   if (sidx[ij])
+                //   if (sidx.at(ij))
                 {
-                    diffx=(arrayii[ij-ny]+arrayii[ij+ny]-2*arrayii[ij])/(dx*dx);
-                    diffy=(arrayii[ij-1]+arrayii[ij+1]-2*arrayii[ij])/(dy*dy);
-                    Z[ij]+=(diffx+diffy)*kd*dt;
-                    diffuarray[ij]+=(diffx+diffy)*kd*dt;
+                    diffx=(arrayii.at(ij-ny)+arrayii.at(ij+ny)-2*arrayii.at(ij))/(dx*dx);
+                    diffy=(arrayii.at(ij-1)+arrayii.at(ij+1)-2*arrayii.at(ij))/(dy*dy);
+                    Z.at(ij)+=(diffx+diffy)*kd*dt;
+                    diffuarray.at(ij)+=(diffx+diffy)*kd*dt;
                     
                 }
                 

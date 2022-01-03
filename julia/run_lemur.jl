@@ -158,7 +158,7 @@ mutable struct datas
     R::Array{Float64,3}
     csed::Array{Float64,3}
     cw::Array{Float64,3}
-
+    ero::Array{Float64,3}
     function datas()
         obj = new()
     end
@@ -212,6 +212,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
     data.u2 = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.chi = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.a = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
+    data.ero = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     data.z[:,:,1] = copy(z)
     data.R = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
     csed = zeros(size(z))
@@ -293,15 +294,16 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             end
             
             data.u2[:,:,i] = sed
+            data.ero[:,:,i] = ero
             
 
         end
         
         if true
             if t ==0
-                data.csed = zeros(floor(Int16,lemur_params.ny),floor(Int16,lemur_params.nx),ceil(Int16,lemur_params.t/lemur_params.dt+1))
+                data.csed = zeros(floor(Int16,lemur_params.ny), floor(Int16,lemur_params.nx), ceil(Int16,lemur_params.t/lemur_params.dt+1))
                 data.csed[:,:,i] = ero
-                data.csed[:,:,i][data.csed[:,:,i] .< 0] .= 0
+                data.csed[:,:,i][data.csed[:,:,i] .< 0] .= .0
             else
                 csed  .+= ero
                 csed[csed .< 0] .= 0
@@ -315,7 +317,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
                 w = copy(get_lemur(model,"watertot",lemur_params.ny,lemur_params.nx))
                 data.cw[:,:,i] .= w
             end
-            ij = 200+250*lemur_params.ny
+            ij = 200+300*lemur_params.ny
 
             push!(profile, getstrm(z,R,ij))
 

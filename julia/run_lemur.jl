@@ -253,7 +253,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             @cxx model -> lakefill()
 
             set_lemur(model,"firstcall",0.0)
-
+            println(maximum(z))
 
         end
 
@@ -320,7 +320,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
             ij = 200+300*lemur_params.ny
 
             push!(profile, getstrm(z,R,ij))
-
+            
         end
         
 

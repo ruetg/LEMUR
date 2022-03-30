@@ -647,17 +647,12 @@ void lemur::reset()
     {
         
         BCX.at(BC.at(i))=1;
-    }
-
-  
-    
-    
-    
+    }   
     
 }
 
 
-void lemur::filll()
+void lemur::fill_lakes()
 {
     if (stackij.size()>0)
     {
@@ -670,14 +665,14 @@ void lemur::filll()
             {
                 if (Z.at(stackij.at(j).at(i))<=Z.at(slpis.at(stackij.at(j).at(i))))
                 {
-                    Z.at(stackij.at(j).at(i))=Z.at(slpis.at(stackij.at(j).at(i)))+1e-4;
+                    Z.at(stackij.at(j).at(i))=Z.at(slpis.at(stackij.at(j).at(i)))+1e-6 + rand()/RAND_MAX * 1e-4;
                 }
             }
         }
     }
 }
 
-void lemur::fillls()
+void lemur::fill_lakes_sed()
 {
 
     std::vector<double> cero=ero;
@@ -1426,7 +1421,7 @@ void lemur::lakefill2()
                 if (Z.at(ij)<=Z.at(s))
                 {
                     
-                    Z.at(ij)=Z.at(s)+1e-10;
+                    Z.at(ij)=Z.at(s)+1e-8 + rand/RAND_MAX * 1e-;
                     
                     pit.at(p)=ij;
                     p++;
@@ -1515,7 +1510,6 @@ void lemur::landsed()
             nsink++;
         }
     }
-    std::cout<<"here1x"<<std::endl;
 
     for (int i = 1;i <= nn;i++)
     {
@@ -1572,7 +1566,6 @@ void lemur::landsed()
         }
 
     }
-    std::cout<<"here2x"<< std::endl;
 
     if (maxareasinkfill>=0)
     {

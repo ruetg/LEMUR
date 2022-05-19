@@ -1,3 +1,4 @@
+
 #include <string>
 #include <fstream>
 #include<cmath>
@@ -647,12 +648,17 @@ void lemur::reset()
     {
         
         BCX.at(BC.at(i))=1;
-    }   
+    }
+
+  
+    
+    
+    
     
 }
 
 
-void lemur::fill_lakes()
+void lemur::filll()
 {
     if (stackij.size()>0)
     {
@@ -665,14 +671,14 @@ void lemur::fill_lakes()
             {
                 if (Z.at(stackij.at(j).at(i))<=Z.at(slpis.at(stackij.at(j).at(i))))
                 {
-                    Z.at(stackij.at(j).at(i))=Z.at(slpis.at(stackij.at(j).at(i)))+1e-6 + rand()/RAND_MAX * 1e-4;
+                    Z.at(stackij.at(j).at(i))=Z.at(slpis.at(stackij.at(j).at(i)))+1e-6+rand()/RAND_MAX*1e-6;
                 }
             }
         }
     }
 }
 
-void lemur::fill_lakes_sed()
+void lemur::fillls()
 {
 
     std::vector<double> cero=ero;
@@ -1421,7 +1427,7 @@ void lemur::lakefill2()
                 if (Z.at(ij)<=Z.at(s))
                 {
                     
-                    Z.at(ij)=Z.at(s)+1e-8 + rand/RAND_MAX * 1e-;
+                    Z.at(ij)=Z.at(s)+1e-6 + rand()/RAND_MAX*1e-6;
                     
                     pit.at(p)=ij;
                     p++;
@@ -1510,6 +1516,7 @@ void lemur::landsed()
             nsink++;
         }
     }
+    std::cout<<"here1x"<<std::endl;
 
     for (int i = 1;i <= nn;i++)
     {
@@ -1566,6 +1573,7 @@ void lemur::landsed()
         }
 
     }
+    std::cout<<"here2x"<< std::endl;
 
     if (maxareasinkfill>=0)
     {
@@ -2249,11 +2257,6 @@ void lemur::diffuse()
     }
     dt=dti;
 }
-
-
-
-
-
 
 
 

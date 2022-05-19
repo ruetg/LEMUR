@@ -317,7 +317,7 @@ function run(lemur_params; compute_sedflux = false, calc_chi = true)
                 w = copy(get_lemur(model,"watertot",lemur_params.ny,lemur_params.nx))
                 data.cw[:,:,i] .= w
             end
-            ij = 200+300*lemur_params.ny
+            ij = 230+300*lemur_params.ny
 
             push!(profile, getstrm(z,R,ij))
             

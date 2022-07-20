@@ -1897,17 +1897,10 @@ void lemur::deposit()
                         
                         break;
                     }
-
                 }
-                
-                
-                
-                
             }
-            
         }
     }
-    
 }
 
 
